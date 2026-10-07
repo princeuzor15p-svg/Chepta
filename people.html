@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>chepta® — Find people</title>
+<meta name="description" content="Search chepta users by username and send a chat request." />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="chepta.css" />
+<style>
+  /* Verified Badge & Lightbox Styles */
+  .verified-badge {
+    color: var(--brand, #12d6a4); font-size: 12px; margin-left: 3px; vertical-align: middle; display: inline-flex;
+  }
+  .lightbox-overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 1000;
+    display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity .25s ease;
+  }
+  .lightbox-overlay.on { opacity: 1; pointer-events: auto; }
+  .lightbox-content { max-width: 90%; max-height: 90vh; border-radius: 12px; object-fit: contain; }
+  .lightbox-close {
+    position: absolute; top: 20px; right: 20px; background: rgba(255,255,255,0.1); border: none; color: #fff;
+    width: 40px; height: 40px; border-radius: 50%; font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center;
+  }
+  .nav a { position: relative; }
+  .nav .nbadge {
+    position: absolute; top: 6px; right: calc(50% - 16px); background: #ff4d4d; color: #fff;
+    font-size: 10px; font-weight: 700; padding: 2px 5px; border-radius: 10px; min-width: 16px; text-align: center;
+    border: 2px solid var(--surface, #131c2e);
+  }
+</style>
+</head>
+<body>
+<div class="scrim" id="scrim"></div>
+<aside class="drawer" id="drawer">
+  <div class="dhead" id="drawerUser"></div>
+  <nav>
+    <a href="dashboard.html"><i class="fa-solid fa-comments"></i> Chats</a>
+    <a href="feed.html"><i class="fa-solid fa-rss"></i> Feed</a>
+    <a href="requests.html"><i class="fa-solid fa-user-plus"></i> Requests</a>
+    <a href="people.html"><i class="fa-solid fa-magnifying-glass"></i> Find people</a>
+    <a href="groups.html"><i class="fa-solid fa-users"></i> Groups</a>
+    <a href="profile.html"><i class="fa-solid fa-user"></i> My profile</a>
+    <a href="settings.html"><i class="fa-solid fa-gear"></i> Settings</a>
+    <a href="terms.html"><i class="fa-solid fa-file-lines"></i> Terms &amp; Privacy</a>
+    <a href="#" id="logoutBtn" class="danger"><i class="fa-solid fa-arrow-right-from-bracket"></i> Log out</a>
+  </nav>
+</aside>
+
+<div class="page">
+  <header class="top">
+    <button class="icobtn" id="menuBtn"><i class="fa-solid fa-bars"></i></button>
+    <h1>Find people</h1>
+  </header>
+  <div class="pad"><input id="q" type="search" placeholder="Search by username…" autocomplete="off" /></div>
+  <div id="list" class="empty"><i class="fa-solid fa-user-group"></i>Type a username to find someone on chepta.</div>
+</div>
+
+<!-- Fullscreen Profile Picture Lightbox -->
+<div class="lightbox-overlay" id="lightboxOverlay">
+  <button class="lightbox-close" id="lightboxClose"><i class="fa-solid fa-xmark"></i></button>
+  <img class="lightbox-content" id="lightboxImg" src="" alt="Profile zoom" />
+</div>
+
+<nav class="nav">
+  <a href="dashboard.html" data-nav="chats"><i class="fa-solid fa-comments"></i>Chats</a>
+  <a href="feed.html" data-nav="feed"><i class="fa-solid fa-rss"></i>Feed<span class="nbadge hide" id="feedBadge">0</span></a>
+  <a href="people.html" data-nav="people"><i class="fa-solid fa-magnifying-glass"></i>People</a>
+  <a href="requests.html" data-nav="requests"><i class="fa-solid fa-user-plus"></i>Requests<span class="nbadge hide" id="reqBadge">0</span></a>
+  <a href="profile.html" data-nav="profile"><i class="fa-solid fa-user"></i>Profile</a>
+</nav>
+
+<script type="module">
+import {
+  db, requireAuth, mountShell, $, esc, avatar, toast, dmId,
+  collection, query, where, orderBy, limit, getDocs, getDoc, setDoc, addDoc, doc, serverTimestamp, onSnapshot
+} from "./chepta.js";
+
+let ME, PROF, friends = new Set(), sent = new Set(), incoming = new Set();
+
+const lightboxOverlay = $('lightboxOverlay');
+const lightboxImg = $('lightboxImg');
+window.openLightbox = (imgSrc) => {
+  if (!imgSrc) return;
+  lightboxImg.src = imgSrc;
+  lightboxOverlay.classList.add('on');
+};
+$('lightboxClose').onclick = () => lightboxOverlay.classList.remove('on');
+lightboxOverlay.onclick = (e) => { if (e.target === lightboxOverlay) lightboxOverlay.classList.remove('on'); };
+
+requireAuth(async (user, profile) => {
+  ME = user; PROF = profile;
+  mountShell("people", profile);
+  const fr = await getDocs(collection(db, "users", user.uid, "friends"));
+  fr.forEach((d) => friends.add(d.id));
+  const out = await getDocs(query(collection(db, "requests"), where("from", "==", user.uid), where("status", "==", "pending")));
+  out.forEach((d) => sent.add(d.data().to));
+  const inc = await getDocs(query(collection(db, "requests"), where("to", "==", user.uid), where("status", "==", "pending")));
+  inc.forEach((d) => incoming.add(d.data().from));
+
+  onSnapshot(query(collection(db, 'stories')), (s) => {
+    const feedBadge = $('feedBadge');
+    if (s.size > 0) {
+      feedBadge.textContent = s.size;
+      feedBadge.classList.remove('hide');
+    } else {
+      feedBadge.classList.add('hide');
+    }
+  }, () => {});
+
+  onSnapshot(query(collection(db, 'requests'), where('to', '==', user.uid), where('status', '==', 'pending')), (s) => {
+    const b = $('reqBadge');
+    if (s.size) { b.textContent = s.size; b.classList.remove('hide'); } else { b.classList.add('hide'); }
+  }, () => {});
+});
+
+let t;
+$("q").oninput = (e) => { clearTimeout(t); t = setTimeout(() => search(e.target.value.trim().toLowerCase()), 280); };
+
+async function search(term) {
+  const box = $("list");
+  if (term.length < 2) { box.className = "empty"; box.innerHTML = `<i class="fa-solid fa-user-group"></i>Type at least 2 characters.`; return; }
+  box.className = ""; box.innerHTML = `<div class="skel"></div><div class="skel"></div>`;
+
+  try {
+    const q1 = query(collection(db, "users"), orderBy("username"), where("username", ">=", term), where("username", "<=", term + "\uf8ff"), limit(25));
+    const q2 = query(collection(db, "users"), orderBy("displayName"), where("displayName", ">=", term), where("displayName", "<=", term + "\uf8ff"), limit(25));
+
+    const [snap1, snap2] = await Promise.all([getDocs(q1).catch(() => ({ docs: [] })), getDocs(q2).catch(() => ({ docs: [] }))]);
+
+    const resultMap = new Map();
+    snap1.docs.forEach((d) => resultMap.set(d.id, d.data()));
+    snap2.docs.forEach((d) => resultMap.set(d.id, d.data()));
+
+    const users = Array.from(resultMap.values()).filter((u) => u.uid !== ME.uid);
+
+    if (!users.length) {
+      box.className = "empty";
+      box.innerHTML = `<i class="fa-solid fa-user-slash"></i>No user found for “${esc(term)}”.`;
+      return;
+    }
+
+    box.innerHTML = users.map((u) => {
+      const uname = u.username || u.displayName || "user";
+      const isOnline = u.online !== undefined ? u.online : u.isOnline;
+      const userPic = u.photoB64 || u.avatarUrl || u.profilePic || "";
+      const verifiedMarkup = u.isVerified ? `<span class="verified-badge" title="Verified Account"><i class="fa-solid fa-circle-check"></i></span>` : '';
+      return `
+      <div class="row">
+        <div class="avwrap avatar-zoom-trigger" data-pic="${esc(userPic)}">${avatar(u)}<span class="dot ${isOnline ? "on" : ""}"></span></div>
+        <div class="grow"><div class="name">@${esc(uname)}${verifiedMarkup}</div><div class="sub">${esc(u.about || u.bio || "On chepta")}</div></div>
+        ${btnFor(u)}
+      </div><div class="sep"></div>`;
+    }).join("");
+
+    box.querySelectorAll(".avatar-zoom-trigger").forEach((av) => {
+      av.onclick = () => {
+        const pic = av.dataset.pic;
+        if (pic) openLightbox(pic);
+      };
+    });
+
+    box.querySelectorAll("[data-send]").forEach((b) => b.onclick = () => sendReq(b, b.dataset.send));
+    box.querySelectorAll("[data-open]").forEach((b) => b.onclick = () => openChat(b.dataset.open));
+  } catch (err) {
+    box.className = "empty";
+    box.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i>Search error.`;
+  }
+}
+
+function btnFor(u) {
+  if (friends.has(u.uid)) return `<button class="btn sm" data-open="${u.uid}">Message</button>`;
+  if (sent.has(u.uid)) return `<button class="btn sm ghost" disabled>Requested</button>`;
+  if (incoming.has(u.uid)) return `<a class="btn sm ghost" href="requests.html">Respond</a>`;
+  return `<button class="btn sm" data-send="${u.uid}">Add</button>`;
+}
+
+async function sendReq(btn, uid) {
+  btn.disabled = true; btn.innerHTML = '<span class="spin"></span>';
+  try {
+    await addDoc(collection(db, "requests"), {
+      from: ME.uid, 
+      fromName: PROF.username || PROF.displayName, 
+      fromPhoto: PROF.photoB64 || PROF.avatarUrl || PROF.profilePic || "",
+      to: uid, 
+      status: "pending", 
+      createdAt: serverTimestamp(),
+    });
+    sent.add(uid);
+    btn.outerHTML = `<button class="btn sm ghost" disabled>Requested</button>`;
+    toast("Request sent");
+  } catch (e) { btn.disabled = false; btn.textContent = "Add"; toast(e.message); }
+}
+
+async function openChat(uid) {
+  const id = dmId(ME.uid, uid);
+  const ref = doc(db, "chats", id);
+  if (!(await getDoc(ref)).exists()) {
+    await setDoc(ref, { members: [ME.uid, uid], isGroup: false, unread: {}, createdAt: serverTimestamp() });
+  }
+  location.href = "chat.html?c=" + id;
+}
+</script>
+</body>
+</html>

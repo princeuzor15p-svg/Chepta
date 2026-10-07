@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>chepta® — Settings</title>
+<meta name="description" content="Theme, privacy, blocked users and account settings for chepta." />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="chepta.css" />
+<style>
+  .srow{display:flex;align-items:center;gap:13px;padding:15px 16px;border-bottom:1px solid var(--line)}
+  .srow i.lead{width:22px;text-align:center;color:var(--brand)}.srow .grow{flex:1}
+  .sw{width:46px;height:27px;border-radius:99px;background:var(--surface-2);border:1px solid var(--line);position:relative;cursor:pointer;flex:none}
+  .sw b{position:absolute;top:2px;left:2px;width:21px;height:21px;border-radius:50%;background:var(--muted);transition:.2s}
+  .sw.on{background:rgba(18,214,164,.25);border-color:var(--brand)}.sw.on b{left:22px;background:var(--brand)}
+  .sselect, .sinput { background: var(--surface-2); color: var(--text); border: 1px solid var(--line); padding: 6px 10px; border-radius: 8px; font-family: inherit; font-size: 13px; outline: none; }
+  .nav a { position: relative; }
+  .nav .nbadge {
+    position: absolute; top: 6px; right: calc(50% - 16px); background: #ff4d4d; color: #fff;
+    font-size: 10px; font-weight: 700; padding: 2px 5px; border-radius: 10px; min-width: 16px; text-align: center;
+    border: 2px solid var(--surface, #131c2e);
+  }
+  .session-item { display: flex; align-items: center; justify-content: space-between; padding: 10px 16px; border-bottom: 1px solid var(--line); font-size: 13px; }
+</style>
+</head>
+<body>
+<div class="scrim" id="scrim"></div>
+<aside class="drawer" id="drawer">
+  <div class="dhead" id="drawerUser"></div>
+  <nav>
+    <a href="dashboard.html"><i class="fa-solid fa-comments"></i> Chats</a>
+    <a href="feed.html"><i class="fa-solid fa-rss"></i> Feed</a>
+    <a href="requests.html"><i class="fa-solid fa-user-plus"></i> Requests</a>
+    <a href="people.html"><i class="fa-solid fa-magnifying-glass"></i> Find people</a>
+    <a href="groups.html"><i class="fa-solid fa-users"></i> Groups</a>
+    <a href="profile.html"><i class="fa-solid fa-user"></i> My profile</a>
+    <a href="settings.html"><i class="fa-solid fa-gear"></i> Settings</a>
+    <a href="terms.html"><i class="fa-solid fa-file-lines"></i> Terms &amp; Privacy</a>
+    <a href="#" id="logoutBtn" class="danger"><i class="fa-solid fa-arrow-right-from-bracket"></i> Log out</a>
+  </nav>
+</aside>
+
+<div class="page">
+  <header class="top">
+    <button class="icobtn" id="menuBtn"><i class="fa-solid fa-bars"></i></button>
+    <h1>Settings</h1>
+  </header>
+
+  <!-- Appearance & Display -->
+  <div class="pad" style="padding-top:12px"><b style="font-size:13px;color:var(--muted);letter-spacing:.06em">APPEARANCE</b></div>
+  <div class="srow"><i class="fa-solid fa-moon lead"></i><div class="grow"><b>Dark theme</b><div class="sub">Easier on the eyes at night</div></div><div class="sw" id="swTheme"><b></b></div></div>
+  <div class="srow"><i class="fa-solid fa-text-height lead"></i><div class="grow"><b>Font size</b><div class="sub">Adjust chat text scaling</div></div>
+    <select class="sselect" id="selFontSize">
+      <option value="sm">Small</option>
+      <option value="md" selected>Medium</option>
+      <option value="lg">Large</option>
+    </select>
+  </div>
+  <div class="srow"><i class="fa-solid fa-language lead"></i><div class="grow"><b>Language</b><div class="sub">Select app interface language</div></div>
+    <select class="sselect" id="selLang">
+      <option value="en" selected>English</option>
+    </select>
+  </div>
+
+  <!-- Privacy & Security -->
+  <div class="pad" style="padding-top:22px"><b style="font-size:13px;color:var(--muted);letter-spacing:.06em">PRIVACY &amp; SECURITY</b></div>
+  <div class="srow"><i class="fa-solid fa-circle-dot lead"></i><div class="grow"><b>Show online status</b><div class="sub">Let friends see when you're active</div></div><div class="sw" id="swPresence"><b></b></div></div>
+  <div class="srow"><i class="fa-solid fa-eye-low-vision lead"></i><div class="grow"><b>Read receipts</b><div class="sub">Let others know when you've read messages</div></div><div class="sw" id="swReceipts"><b></b></div></div>
+  
+  <div class="srow"><i class="fa-solid fa-clock lead"></i><div class="grow"><b>Default disappearing messages</b><div class="sub">Auto-delete new messages over time</div></div>
+    <select class="sselect" id="selDisappear">
+      <option value="off">Off</option>
+      <option value="24h">24 Hours</option>
+      <option value="7d">7 Days</option>
+    </select>
+  </div>
+  <div class="srow"><i class="fa-solid fa-shield-halved lead"></i><div class="grow"><b>Two-factor authentication (2FA)</b><div class="sub">Extra security for your sign-ins</div></div><div class="sw" id="sw2FA"><b></b></div></div>
+
+  <!-- Notifications & Sound -->
+  <div class="pad" style="padding-top:22px"><b style="font-size:13px;color:var(--muted);letter-spacing:.06em">NOTIFICATIONS</b></div>
+  <div class="srow"><i class="fa-solid fa-bell lead"></i><div class="grow"><b>Sound on new message</b><div class="sub">Play a soft chime</div></div><div class="sw" id="swSound"><b></b></div></div>
+  <div class="srow"><i class="fa-solid fa-message lead"></i><div class="grow"><b>Message previews</b><div class="sub">Show message snippet in notifications</div></div><div class="sw" id="swPreview"><b></b></div></div>
+  <div class="srow"><i class="fa-solid fa-envelope lead"></i><div class="grow"><b>Email notifications</b><div class="sub">Receive updates and weekly summaries</div></div><div class="sw" id="swEmailNotif"><b></b></div></div>
+
+  <!-- Storage & Data -->
+  <div class="pad" style="padding-top:22px"><b style="font-size:13px;color:var(--muted);letter-spacing:.06em">STORAGE &amp; DATA</b></div>
+  <div class="srow"><i class="fa-solid fa-hard-drive lead"></i><div class="grow"><b>Storage usage</b><div class="sub" id="storageSub">Calculated cache: 14.2 MB</div></div>
+    <button class="btn sm ghost" id="clearCacheBtn">Clear Cache</button>
+  </div>
+  <div class="srow"><i class="fa-solid fa-download lead"></i><div class="grow"><b>Download my data</b><div class="sub">Export an archive of your profile and chats</div></div>
+    <button class="btn sm ghost" id="exportDataBtn">Export</button>
+  </div>
+
+  <!-- Active Sessions -->
+  <div class="pad" style="padding-top:22px"><b style="font-size:13px;color:var(--muted);letter-spacing:.06em">ACTIVE SESSIONS</b></div>
+  <div id="sessionsList">
+    <div class="session-item"><span><i class="fa-solid fa-desktop" style="margin-right:8px;color:var(--brand)"></i> Current Browser · Active Now</span><span style="color:var(--muted)">This device</span></div>
+  </div>
+
+  <!-- Blocked Users Section -->
+  <div class="pad" style="padding-top:22px"><b style="font-size:13px;color:var(--muted);letter-spacing:.06em">BLOCKED USERS</b></div>
+  <div id="blocked"></div>
+
+  <!-- Actions -->
+  <div class="pad" style="display:flex;flex-direction:column;gap:10px;padding-top:22px">
+    <button class="btn ghost" id="reportBtn"><i class="fa-solid fa-flag"></i> Report a problem</button>
+    <a class="btn ghost" href="terms.html" style="text-align:center;line-height:1.2">Terms &amp; Privacy</a>
+    <button class="btn danger" id="logout2"><i class="fa-solid fa-arrow-right-from-bracket"></i> Log out</button>
+    <button class="btn danger" id="del"><i class="fa-regular fa-trash-can"></i> Delete my account</button>
+    <p style="text-align:center;color:var(--muted);font-size:12px">chepta® v1.1 · built for fast, private talking</p>
+  </div>
+</div>
+
+<nav class="nav">
+  <a href="dashboard.html" data-nav="chats"><i class="fa-solid fa-comments"></i>Chats</a>
+  <a href="feed.html" data-nav="feed"><i class="fa-solid fa-rss"></i>Feed<span class="nbadge hide" id="feedBadge">0</span></a>
+  <a href="people.html" data-nav="people"><i class="fa-solid fa-magnifying-glass"></i>People</a>
+  <a href="requests.html" data-nav="requests"><i class="fa-solid fa-user-plus"></i>Requests<span class="nbadge hide" id="reqBadge">0</span></a>
+  <a href="profile.html" data-nav="profile"><i class="fa-solid fa-user"></i>Profile</a>
+</nav>
+
+<script type="module">
+import {
+  db, auth, requireAuth, mountShell, applyTheme, logout, $, esc, avatar, toast, getUser,
+  doc, updateDoc, deleteDoc, addDoc, collection, serverTimestamp, arrayRemove, onSnapshot, query, where
+} from "./chepta.js";
+
+let ME, PROF;
+const set = (sw, on) => sw.classList.toggle("on", !!on);
+
+requireAuth(async (user, profile) => {
+  ME = user; PROF = profile;
+  mountShell("settings", profile);
+  
+  // Initialize switches & configurations from profile data / local storage
+  set($("swTheme"), (profile.theme || "dark") !== "light");
+  set($("swPresence"), profile.showPresence !== false);
+  set($("swSound"), localStorage.getItem("chepta:sound") !== "off");
+  set($("swReceipts"), profile.readReceipts !== false);
+  set($("swPreview"), profile.msgPreview !== false);
+  set($("swEmailNotif"), profile.emailNotif === true);
+  set($("sw2FA"), profile.twoFactor === true);
+
+  if (profile.fontSize) $("selFontSize").value = profile.fontSize;
+  if (profile.lang) $("selLang").value = profile.lang;
+  if (profile.msgFilter) $("selMsgFilter").value = profile.msgFilter;
+  if (profile.disappearTimer) $("selDisappear").value = profile.disappearTimer;
+
+  // Real-time badges setup
+  onSnapshot(query(collection(db, 'stories')), (s) => {
+    const feedBadge = $('feedBadge');
+    if (s.size > 0) { feedBadge.textContent = s.size; feedBadge.classList.remove('hide'); } 
+    else { feedBadge.classList.add('hide'); }
+  }, () => {});
+
+  onSnapshot(query(collection(db, 'requests'), where('to', '==', user.uid), where('status', '==', 'pending')), (s) => {
+    const b = $('reqBadge');
+    if (s.size) { b.textContent = s.size; b.classList.remove('hide'); } else { b.classList.add('hide'); }
+  }, () => {});
+
+  // --- Toggle Event Listeners ---
+  $("swTheme").onclick = async () => {
+    const dark = !$("swTheme").classList.contains("on");
+    set($("swTheme"), dark); applyTheme(dark ? "dark" : "light");
+    await updateDoc(doc(db, "users", ME.uid), { theme: dark ? "dark" : "light" });
+  };
+  $("swPresence").onclick = async () => {
+    const on = !$("swPresence").classList.contains("on");
+    set($("swPresence"), on);
+    await updateDoc(doc(db, "users", ME.uid), { showPresence: on, online: on });
+  };
+  $("swSound").onclick = () => {
+    const on = !$("swSound").classList.contains("on");
+    set($("swSound"), on); localStorage.setItem("chepta:sound", on ? "on" : "off");
+  };
+  $("swReceipts").onclick = async () => {
+    const on = !$("swReceipts").classList.contains("on");
+    set($("swReceipts"), on);
+    await updateDoc(doc(db, "users", ME.uid), { readReceipts: on });
+    toast("Read receipts updated");
+  };
+  $("swPreview").onclick = async () => {
+    const on = !$("swPreview").classList.contains("on");
+    set($("swPreview"), on);
+    await updateDoc(doc(db, "users", ME.uid), { msgPreview: on });
+  };
+  $("swEmailNotif").onclick = async () => {
+    const on = !$("swEmailNotif").classList.contains("on");
+    set($("swEmailNotif"), on);
+    await updateDoc(doc(db, "users", ME.uid), { emailNotif: on });
+    toast("Email notifications preference saved");
+  };
+  $("sw2FA").onclick = async () => {
+    const on = !$("sw2FA").classList.contains("on");
+    set($("sw2FA"), on);
+    await updateDoc(doc(db, "users", ME.uid), { twoFactor: on });
+    toast(on ? "2FA security enabled" : "2FA disabled");
+  };
+
+  // --- Dropdowns & Select Listeners ---
+  $("selFontSize").onchange = async (e) => {
+    const val = e.target.value;
+    document.documentElement.style.fontSize = val === 'sm' ? '14px' : val === 'lg' ? '18px' : '16px';
+    await updateDoc(doc(db, "users", ME.uid), { fontSize: val });
+    toast("Font size updated");
+  };
+  $("selLang").onchange = async (e) => {
+    await updateDoc(doc(db, "users", ME.uid), { lang: e.target.value });
+    toast("Language preference saved");
+  };
+  $("selMsgFilter").onchange = async (e) => {
+    await updateDoc(doc(db, "users", ME.uid), { msgFilter: e.target.value });
+    toast("Message filtering updated");
+  };
+  $("selDisappear").onchange = async (e) => {
+    await updateDoc(doc(db, "users", ME.uid), { disappearTimer: e.target.value });
+    toast("Default disappearing timer updated");
+  };
+
+  // --- Storage & Data Actions ---
+  $("clearCacheBtn").onclick = () => {
+    localStorage.removeItem("chepta:cache");
+    $("storageSub").textContent = "Calculated cache: 0 KB";
+    toast("Local storage cache cleared!");
+  };
+
+  $("exportDataBtn").onclick = () => {
+    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(PROF, null, 2));
+    const dlAnchorElem = document.createElement('a');
+    dlAnchorElem.setAttribute("href", dataStr);
+    dlAnchorElem.setAttribute("download", `chepta_data_${PROF.username}.json`);
+    document.body.appendChild(dlAnchorElem);
+    dlAnchorElem.click();
+    dlAnchorElem.remove();
+    toast("Data export downloaded successfully");
+  };
+
+  renderBlocked(profile.blocked || []);
+});
+
+async function renderBlocked(list) {
+  const box = $("blocked");
+  if (!list.length) { box.innerHTML = `<div class="pad sub">You haven't blocked anyone.</div>`; return; }
+  const users = await Promise.all(list.map(getUser));
+  box.innerHTML = users.map((u) => `<div class="row">${avatar(u, "sm")}
+    <div class="grow"><div class="name">@${esc(u.username)}</div></div>
+    <button class="btn sm ghost" data-un="${u.uid}">Unblock</button></div>`).join("");
+  box.querySelectorAll("[data-un]").forEach((b) => b.onclick = async () => {
+    await updateDoc(doc(db, "users", ME.uid), { blocked: arrayRemove(b.dataset.un) });
+    toast("Unblocked"); b.closest(".row").remove();
+  });
+}
+
+$("reportBtn").onclick = async () => {
+  const text = prompt("Tell us what went wrong:");
+  if (!text) return;
+  await addDoc(collection(db, "reports"), {
+    by: ME.uid, byName: PROF.username, type: "problem", snippet: text,
+    status: "open", createdAt: serverTimestamp(),
+  });
+  toast("Thanks — our admins will look into it");
+};
+
+$("logout2").onclick = logout;
+
+$("del").onclick = async () => {
+  if (!confirm("Delete your chepta account permanently? This cannot be undone.")) return;
+  try {
+    await deleteDoc(doc(db, "usernames", PROF.username)).catch(() => {});
+    await deleteDoc(doc(db, "users", ME.uid));
+    await auth.currentUser.delete();
+    localStorage.clear();
+    location.replace("index.html");
+  } catch (e) { toast(e.code?.includes("recent-login") ? "Please log out and sign in again, then retry." : e.message); }
+};
+</script>
+</body>
+</html>

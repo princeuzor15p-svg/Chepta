@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>chepta® — Groups</title>
+<meta name="description" content="Create, manage, and discover group chats on chepta." />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="chepta.css" />
+<style>
+  .nav a { position: relative; }
+  .nav .nbadge {
+    position: absolute; top: 6px; right: calc(50% - 16px); background: #ff4d4d; color: #fff;
+    font-size: 10px; font-weight: 700; padding: 2px 5px; border-radius: 10px; min-width: 16px; text-align: center;
+    border: 2px solid var(--surface, #131c2e);
+  }
+  .groups-header-actions { display: flex; gap: 8px; align-items: center; }
+  .search-toolbar { padding: 12px 16px; background: rgba(255,255,255,0.02); border-bottom: 1px solid var(--line); display: flex; gap: 8px; flex-direction: column; }
+  .search-wrapper { position: relative; display: flex; align-items: center; }
+  .search-input {
+    width: 100%; padding: 10px 14px 10px 38px; background: rgba(255,255,255,0.04); border: 1px solid var(--line);
+    border-radius: 12px; color: var(--txt); font-family: Manrope, sans-serif; font-size: 13.5px; outline: none; transition: border-color 0.2s;
+  }
+  .search-input:focus { border-color: var(--brand); box-shadow: 0 0 0 2px rgba(var(--brand-rgb), 0.15); }
+  .search-wrapper i { position: absolute; left: 14px; color: var(--muted); font-size: 13px; }
+  
+  .filter-tabs { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 4px; scrollbar-width: none; }
+  .filter-tabs::-webkit-scrollbar { display: none; }
+  .ftab {
+    background: rgba(255,255,255,0.04); border: 1px solid var(--line); padding: 6px 12px; border-radius: 20px;
+    font-size: 12px; font-weight: 600; color: var(--muted); cursor: pointer; white-space: nowrap; transition: all 0.2s;
+  }
+  .ftab.active { background: var(--brand); color: #fff; border-color: var(--brand); }
+
+  .group-card-actions { display: flex; gap: 6px; align-items: center; opacity: 0.8; transition: opacity 0.2s; }
+  .row:hover .group-card-actions { opacity: 1; }
+  .action-icon-btn { background: none; border: none; color: var(--muted); cursor: pointer; padding: 6px; border-radius: 8px; transition: background 0.2s, color 0.2s; }
+  .action-icon-btn:hover { background: rgba(255,255,255,0.08); color: var(--txt); }
+  .action-icon-btn.pinned { color: var(--brand); }
+
+  .creator-card { display: flex; flex-direction: column; gap: 14px; }
+  .avatar-upload-preview { display: flex; align-items: center; gap: 14px; }
+  .avatar-preview-box { width: 56px; height: 56px; border-radius: 50%; background: rgba(255,255,255,0.06); display: flex; align-items: center; justify-content: center; overflow: hidden; border: 1px dashed var(--line); }
+  .avatar-preview-box img { width: 100%; height: 100%; object-fit: cover; }
+  
+  .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); z-index: 999; display: flex; align-items: center; justify-content: center; padding: 16px; opacity: 0; pointer-events: none; transition: opacity 0.2s; }
+  .modal-overlay.show { opacity: 1; pointer-events: auto; }
+  .modal-card { background: var(--surface, #131c2e); border: 1px solid var(--line); border-radius: 16px; width: 100%; max-width: 420px; padding: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+</style>
+</head>
+<body>
+<div class="scrim" id="scrim"></div>
+<aside class="drawer" id="drawer" aria-label="Navigation Drawer">
+  <div class="dhead" id="drawerUser"></div>
+  <nav>
+    <a href="dashboard.html"><i class="fa-solid fa-comments"></i> Chats</a>
+    <a href="feed.html"><i class="fa-solid fa-rss"></i> Feed</a>
+    <a href="requests.html"><i class="fa-solid fa-user-plus"></i> Requests</a>
+    <a href="people.html"><i class="fa-solid fa-magnifying-glass"></i> Find people</a>
+    <a href="groups.html" class="active"><i class="fa-solid fa-users"></i> Groups</a>
+    <a href="profile.html"><i class="fa-solid fa-user"></i> My profile</a>
+    <a href="settings.html"><i class="fa-solid fa-gear"></i> Settings</a>
+    <a href="terms.html"><i class="fa-solid fa-file-lines"></i> Terms &amp; Privacy</a>
+    <a href="#" id="logoutBtn" class="danger"><i class="fa-solid fa-arrow-right-from-bracket"></i> Log out</a>
+  </nav>
+</aside>
+
+<div class="page">
+  <header class="top">
+    <button class="icobtn" id="menuBtn" aria-label="Open Menu"><i class="fa-solid fa-bars"></i></button>
+    <h1>Groups</h1>
+    <div class="groups-header-actions">
+      <button class="icobtn" id="sortBtn" title="Sort Groups" aria-label="Sort Groups"><i class="fa-solid fa-arrow-down-wide-short"></i></button>
+      <button class="icobtn solid" id="newBtn" title="Create Group" aria-label="Create Group"><i class="fa-solid fa-plus"></i></button>
+    </div>
+  </header>
+
+  <!-- Advanced Search & Filter Toolbar -->
+  <div class="search-toolbar">
+    <div class="search-wrapper">
+      <i class="fa-solid fa-magnifying-glass"></i>
+      <input type="text" class="search-input" id="groupSearch" placeholder="Search groups or members (Ctrl+K)..." aria-label="Search groups" />
+    </div>
+    <div class="filter-tabs" id="filterTabs">
+      <button class="ftab active" data-filter="all">All Groups</button>
+      <button class="ftab" data-filter="pinned">Pinned ⭐</button>
+      <button class="ftab" data-filter="admin">Admin 🛡️</button>
+      <button class="ftab" data-filter="recent">Recent ⚡</button>
+    </div>
+  </div>
+
+  <div id="list" role="region" aria-label="Groups List">
+    <div class="skel"></div><div class="skel" style="opacity:0.7"></div><div class="skel" style="opacity:0.4"></div>
+  </div>
+
+  <!-- Creator Drawer / Section -->
+  <div class="pad hide" id="creator">
+    <div class="card creator-card">
+      <h3><i class="fa-solid fa-users-rectangle"></i> Create New Group</h3>
+      <div>
+        <label class="lbl">Group Name</label>
+        <input id="gname" maxlength="35" placeholder="e.g. Weekend Crew 🚀" />
+      </div>
+      <div>
+        <label class="lbl">Description (Optional)</label>
+        <input id="gdesc" maxlength="100" placeholder="What's this group about?" />
+      </div>
+      <div>
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+          <label class="lbl" style="margin:0">Pick Friends (<span id="pickedCount">0</span>)</label>
+          <button class="action-icon-btn" id="selectAllFriends" style="font-size:11px">Select All</button>
+        </div>
+        <div class="search-wrapper" style="margin-bottom:8px;">
+          <i class="fa-solid fa-search"></i>
+          <input type="text" class="search-input" id="friendSearch" placeholder="Filter friends..." style="padding:8px 12px 8px 32px; font-size:12px;" />
+        </div>
+        <div id="friends" style="max-height:220px; overflow-y:auto; border:1px solid var(--line); border-radius:10px; padding:4px;"></div>
+      </div>
+      <div style="display:flex; gap:8px;">
+        <button class="btn" id="create" style="flex:1"><i class="fa-solid fa-check"></i> Create Group</button>
+        <button class="btn" id="cancelCreate" style="background:rgba(255,255,255,0.06); color:var(--txt); flex:0.4">Cancel</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Group Info Quick Modal -->
+<div class="modal-overlay" id="infoModal">
+  <div class="modal-card">
+    <h3 id="modalGroupName" style="margin-bottom:8px">Group Details</h3>
+    <p id="modalGroupDesc" class="sub" style="margin-bottom:16px">No description provided.</p>
+    <div style="display:flex; flex-direction:column; gap:8px;">
+      <button class="btn" id="modalCopyLink"><i class="fa-solid fa-link"></i> Copy Invite Link</button>
+      <button class="btn" id="modalShare"><i class="fa-solid fa-share-nodes"></i> Share Group</button>
+      <button class="btn danger" id="modalLeave" style="background:rgba(255,77,77,0.15); color:#ff4d4d"><i class="fa-solid fa-right-from-bracket"></i> Leave Group</button>
+      <button class="action-icon-btn" id="closeModal" style="text-align:center; width:100%; margin-top:4px;">Close</button>
+    </div>
+  </div>
+</div>
+
+<nav class="nav" aria-label="Bottom Navigation">
+  <a href="dashboard.html" data-nav="chats"><i class="fa-solid fa-comments"></i>Chats</a>
+  <a href="feed.html" data-nav="feed"><i class="fa-solid fa-rss"></i>Feed<span class="nbadge hide" id="feedBadge">0</span></a>
+  <a href="people.html" data-nav="people"><i class="fa-solid fa-magnifying-glass"></i>People</a>
+  <a href="requests.html" data-nav="requests"><i class="fa-solid fa-user-plus"></i>Requests<span class="nbadge hide" id="reqBadge">0</span></a>
+  <a href="profile.html" data-nav="profile"><i class="fa-solid fa-user"></i>Profile</a>
+</nav>
+
+<script type="module">
+import {
+  db, requireAuth, mountShell, $, esc, avatar, timeAgo, toast, getUser,
+  collection, query, where, onSnapshot, getDocs, addDoc, serverTimestamp, doc, updateDoc, arrayRemove
+} from "./chepta.js";
+
+let ME, PROF, picked = new Set(), allGroups = [], activeFilter = "all", currentSort = "recent", activeModalGroup = null;
+let pinnedGroups = JSON.parse(localStorage.getItem("chepta_pinned_groups") || "[]");
+
+requireAuth(async (user, profile) => {
+  ME = user; PROF = profile;
+  mountShell("chats", profile);
+
+  // Real-time group listener
+  onSnapshot(query(collection(db, "chats"), where("members", "array-contains", user.uid)), (s) => {
+    allGroups = s.docs.map((d) => ({ id: d.id, ...d.data() })).filter((c) => c.isGroup);
+    applyFiltersAndRender();
+  }, (err) => {
+    console.error("Group sync error:", err);
+    $("list").innerHTML = `<div class="empty"><i class="fa-solid fa-triangle-exclamation"></i>Failed to load groups. <button class="btn" onclick="location.reload()" style="margin-top:8px; padding:6px 12px; font-size:12px;">Retry</button></div>`;
+  });
+
+  // Story & Request badge counters
+  onSnapshot(query(collection(db, 'stories')), (s) => {
+    const feedBadge = $('feedBadge');
+    if (s.size > 0) { feedBadge.textContent = s.size; feedBadge.classList.remove('hide'); }
+    else { feedBadge.classList.add('hide'); }
+  }, () => {});
+
+  onSnapshot(query(collection(db, 'requests'), where('to', '==', user.uid), where('status', '==', 'pending')), (s) => {
+    const b = $('reqBadge');
+    if (s.size) { b.textContent = s.size; b.classList.remove('hide'); } else { b.classList.add('hide'); }
+  }, () => {});
+
+  // Load friends for group creation
+  try {
+    const fr = await getDocs(collection(db, "users", user.uid, "friends"));
+    const users = await Promise.all(fr.docs.map((d) => getUser(d.id)));
+    renderFriendPicker(users);
+  } catch (e) {
+    console.error("Error loading friends:", e);
+  }
+});
+
+function renderFriendPicker(users, filterText = "") {
+  const filtered = users.filter(u => u.username.toLowerCase().includes(filterText.toLowerCase()));
+  $("friends").innerHTML = filtered.length ? filtered.map((u) => `
+    <div class="row friend-row" data-uid="${u.uid}" style="padding:8px 6px; cursor:pointer; border-radius:8px;">${avatar(u, "sm")}
+      <div class="grow"><div class="name">@${esc(u.username)}</div></div>
+      <i class="${picked.has(u.uid) ? 'fa-solid fa-square-check' : 'fa-regular fa-square'}" data-check style="${picked.has(u.uid) ? 'color:var(--brand)' : ''}"></i></div>`).join("")
+    : `<div class="sub" style="text-align:center; padding:12px;">No matching friends found.</div>`;
+
+  $("friends").querySelectorAll(".friend-row").forEach((r) => r.onclick = () => {
+    const uid = r.dataset.uid, icon = r.querySelector("[data-check]");
+    if (picked.has(uid)) { picked.delete(uid); icon.className = "fa-regular fa-square"; icon.style.color = ""; }
+    else { picked.add(uid); icon.className = "fa-solid fa-square-check"; icon.style.color = "var(--brand)"; }
+    $('pickedCount').textContent = picked.size;
+  });
+}
+
+function renderGroups(groups) {
+  const listEl = $("list");
+  if (!groups.length) {
+    listEl.innerHTML = `<div class="empty"><i class="fa-solid fa-users-slash"></i>No matching groups found.</div>`;
+    return;
+  }
+
+  listEl.innerHTML = groups.map((g) => {
+    const isPinned = pinnedGroups.includes(g.id);
+    const isAdmin = g.admins?.includes(ME.uid);
+    const unreadCount = g.unread?.[ME.uid] || 0;
+
+    return `
+      <div class="row group-item" data-id="${g.id}" style="cursor:pointer; position:relative;">
+        ${avatar({ username: g.name, photoB64: g.photoB64 })}
+        <div class="grow" style="overflow:hidden;">
+          <div style="display:flex; align-items:center; gap:6px;">
+            <div class="name" style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${esc(g.name)}</div>
+            ${isPinned ? '<i class="fa-solid fa-thumbtack" style="font-size:10px; color:var(--brand);" title="Pinned"></i>' : ''}
+            ${unreadCount > 0 ? `<span class="nbadge" style="position:static; margin-left:4px;">${unreadCount}</span>` : ''}
+          </div>
+          <div class="sub" style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+            ${g.members.length} members · ${esc(g.last?.text || g.description || "No messages yet")}
+          </div>
+        </div>
+        <div class="group-card-actions" onclick="event.stopPropagation()">
+          <button class="action-icon-btn ${isPinned ? 'pinned' : ''}" data-action="pin" data-id="${g.id}" title="${isPinned ? 'Unpin' : 'Pin'}">
+            <i class="fa-solid fa-thumbtack"></i>
+          </button>
+          <button class="action-icon-btn" data-action="info" data-id="${g.id}" data-name="${esc(g.name)}" data-desc="${esc(g.description || '')}" title="Group Options">
+            <i class="fa-solid fa-ellipsis-vertical"></i>
+          </button>
+          <span class="time">${timeAgo(g.last?.at)}</span>
+        </div>
+      </div>
+      <div class="sep"></div>`;
+  }).join("");
+
+  // Event bindings for group items and action buttons
+  listEl.querySelectorAll(".group-item").forEach((r) => {
+    r.onclick = () => location.href = "chat.html?c=" + r.dataset.id;
+  });
+
+  listEl.querySelectorAll("[data-action='pin']").forEach((btn) => {
+    btn.onclick = (e) => {
+      e.stopPropagation();
+      const id = btn.dataset.id;
+      if (pinnedGroups.includes(id)) {
+        pinnedGroups = pinnedGroups.filter(p => p !== id);
+        toast("Group unpinned");
+      } else {
+        pinnedGroups.push(id);
+        toast("Group pinned to top ⭐");
+      }
+      localStorage.setItem("chepta_pinned_groups", JSON.stringify(pinnedGroups));
+      applyFiltersAndRender();
+    };
+  });
+
+  listEl.querySelectorAll("[data-action='info']").forEach((btn) => {
+    btn.onclick = (e) => {
+      e.stopPropagation();
+      activeModalGroup = { id: btn.dataset.id, name: btn.dataset.name, desc: btn.dataset.desc };
+      $('modalGroupName').textContent = activeModalGroup.name;
+      $('modalGroupDesc').textContent = activeModalGroup.desc || "No description provided for this group.";
+      $('infoModal').classList.add('show');
+    };
+  });
+}
+
+function applyFiltersAndRender() {
+  let result = [...allGroups];
+  const term = $('groupSearch').value.toLowerCase().trim();
+
+  // Search filter
+  if (term) {
+    result = result.filter(g => g.name.toLowerCase().includes(term) || (g.description && g.description.toLowerCase().includes(term)));
+  }
+
+  // Tab filter
+  if (activeFilter === "pinned") {
+    result = result.filter(g => pinnedGroups.includes(g.id));
+  } else if (activeFilter === "admin") {
+    result = result.filter(g => g.admins?.includes(ME.uid));
+  } else if (activeFilter === "recent") {
+    result = result.filter(g => g.last?.at && (Date.now() - g.last.at.toMillis?.() < 86400000 * 3));
+  }
+
+  // Sorting
+  result.sort((a, b) => {
+    const aPin = pinnedGroups.includes(a.id) ? 1 : 0;
+    const bPin = pinnedGroups.includes(b.id) ? 1 : 0;
+    if (aPin !== bPin) return bPin - aPin; // Pinned first
+
+    const aTime = a.last?.at?.toMillis?.() || 0;
+    const bTime = b.last?.at?.toMillis?.() || 0;
+    return bTime - aTime;
+  });
+
+  renderGroups(result);
+}
+
+// Event Listeners
+$('groupSearch').oninput = applyFiltersAndRender;
+
+document.querySelectorAll('.ftab').forEach(tab => {
+  tab.onclick = () => {
+    document.querySelectorAll('.ftab').forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+    activeFilter = tab.dataset.filter;
+    applyFiltersAndRender();
+  };
+});
+
+$('newBtn').onclick = () =>$('creator').classList.toggle('hide');
+$('cancelCreate').onclick = () =>$('creator').classList.add('hide');
+
+$('create').onclick = async () => {
+  const name = $('gname').value.trim();
+  const description = $('gdesc').value.trim();
+  if (name.length < 2) return toast("Give your group a valid name (2+ chars)");
+  if (!picked.size) return toast("Pick at least one friend to start a group");
+  
+  const createBtn = $('create');
+  createBtn.disabled = true;
+  createBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Creating...`;
+
+  try {
+    const ref = await addDoc(collection(db, "chats"), {
+      isGroup: true,
+      name,
+      description,
+      members: [ME.uid, ...picked],
+      admins: [ME.uid],
+      unread: {},
+      createdAt: serverTimestamp(),
+      last: { type: "text", text: `${PROF.username} created the group`, at: serverTimestamp(), from: ME.uid },
+    });
+    toast("Group created successfully! 🎉");
+    location.href = "chat.html?c=" + ref.id;
+  } catch (err) {
+    console.error("Creation error:", err);
+    toast("Failed to create group. Try again.");
+    createBtn.disabled = false;
+    createBtn.innerHTML = `<i class="fa-solid fa-check"></i> Create Group`;
+  }
+};
+
+// Modal Actions
+$('closeModal').onclick = () => $('infoModal').classList.remove('show');$('infoModal').onclick = (e) => { if (e.target === $('infoModal'))$('infoModal').classList.remove('show'); };
+
+$('modalCopyLink').onclick = () => {
+  if (!activeModalGroup) return;
+  const link = `${window.location.origin}/chat.html?c=${activeModalGroup.id}`;
+  navigator.clipboard.writeText(link);
+  toast("Invite link copied to clipboard! 📋");
+};
+
+$('modalShare').onclick = async () => {
+  if (!activeModalGroup) return;
+  const link = `${window.location.origin}/chat.html?c=${activeModalGroup.id}`;
+  if (navigator.share) {
+    try {
+      await navigator.share({ title: activeModalGroup.name, text: `Join my group chat on chepta!`, url: link });
+    } catch(e) {}
+  } else {
+    navigator.clipboard.writeText(link);
+    toast("Group link copied!");
+  }
+};
+
+$('modalLeave').onclick = async () => {
+  if (!activeModalGroup || !confirm("Are you sure you want to leave this group?")) return;
+  try {
+    await updateDoc(doc(db, "chats", activeModalGroup.id), {
+      members: arrayRemove(ME.uid)
+    });
+    toast("You left the group");
+    $('infoModal').classList.remove('show');
+  } catch(e) {
+    toast("Failed to leave group");
+  }
+};
+
+// Keyboard shortcuts (Ctrl+K for search)
+window.addEventListener('keydown', (e) => {
+  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
+    e.preventDefault();
+    $('groupSearch').focus();
+  }
+  if (e.key === 'Escape') {
+    $('infoModal').classList.remove('show');$('creator').classList.add('hide');
+  }
+});
+</script>
+</body>
+</html>

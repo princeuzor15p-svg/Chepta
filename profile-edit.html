@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>chepta® — Edit Profile</title>
+<meta name="theme-color" content="#080d17" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --bg: #080d17; --bg-2: #0e1524; --surface: #131c2e; --surface-2: #1a2438;
+    --line: rgba(255,255,255,.08); --txt: #eaf0fb; --muted: #8d9ab4;
+    --brand: #12d6a4; --brand-2: #37e6ff; --danger: #ff5d6c;
+    --radius: 18px; --shadow: 0 24px 60px -24px rgba(0,0,0,.8);
+    --grad: linear-gradient(135deg, var(--brand), var(--brand-2));
+    --nav: 64px;
+  }
+  html[data-theme="light"] {
+    --bg: #f4f7fc; --bg-2: #ffffff; --surface: #ffffff; --surface-2: #eef2f9;
+    --line: rgba(9,20,40,.09); --txt: #0d1526; --muted: #5c6a85;
+    --shadow: 0 20px 50px -28px rgba(13,21,38,.35);
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { height: 100%; margin: 0; }
+  body {
+    background: var(--bg); color: var(--txt);
+    font-family: Manrope, system-ui, sans-serif; overscroll-behavior-y: none;
+  }
+  h1, h2, h3 { font-family: Sora, system-ui, sans-serif; letter-spacing: -.02em; margin: 0; }
+  a { color: var(--brand); text-decoration: none; }
+  button { font-family: Manrope, system-ui, sans-serif; }
+  .hide { display: none !important; }
+
+  /* Topbar */
+  .top {
+    position: sticky; top: 0; z-index: 20; display: flex; align-items: center; gap: 12px;
+    padding: 14px 16px; background: rgba(8,13,23,.82); backdrop-filter: blur(14px);
+    border-bottom: 1px solid var(--line);
+  }
+  html[data-theme="light"] .top { background: rgba(255,255,255,.85); }
+  .top h1 { font-size: 19px; flex: 1; }
+  .icobtn {
+    width: 40px; height: 40px; border-radius: 12px; border: 1px solid var(--line);
+    background: rgba(255,255,255,.04); color: var(--txt); display: grid; place-items: center;
+    font-size: 16px; cursor: pointer; flex: none; transition: .2s;
+  }
+  .icobtn:active { transform: scale(.94); }
+
+  /* Layout */
+  .page { max-width: 580px; margin: 0 auto; min-height: 100%; padding: 20px 16px calc(var(--nav) + 22px); }
+  
+  .card {
+    background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius);
+    padding: 24px; box-shadow: var(--shadow); margin-bottom: 16px;
+  }
+  
+  /* Avatar Picker Section */
+  .avatar-section { display: flex; flex-direction: column; align-items: center; margin-bottom: 24px; text-align: center; }
+  .avatar-preview-wrap { position: relative; margin-bottom: 12px; cursor: pointer; }
+  .av { width: 96px; height: 96px; border-radius: 50%; object-fit: cover; background: var(--surface-2); }
+  .avph { display: grid; place-items: center; color: var(--muted); font-weight: 700; background: var(--surface-2); font-size: 32px; }
+  .avatar-badge-overlay {
+    position: absolute; bottom: 0; right: 0; width: 32px; height: 32px; border-radius: 50%;
+    background: var(--grad); color: #04231c; display: grid; place-items: center; font-size: 13px;
+    border: 2px solid var(--surface); box-shadow: 0 4px 12px rgba(0,0,0,.3);
+  }
+  .avatar-hint { font-size: 12.5px; color: var(--muted); }
+
+  /* Form Controls */
+  .field { margin-bottom: 18px; }
+  .field label { display: block; font-size: 13px; font-weight: 600; color: var(--muted); margin-bottom: 7px; }
+  .input {
+    width: 100%; padding: 13px 15px; border-radius: 12px; border: 1px solid var(--line);
+    background: rgba(255,255,255,.03); color: var(--txt); font: 15px Manrope, sans-serif;
+    outline: none; transition: .2s;
+  }
+  .input:focus { border-color: var(--brand); background: rgba(255,255,255,.05); }
+  textarea.input { resize: vertical; min-height: 90px; }
+  
+  .btn { border: 0; border-radius: 14px; padding: 14px; font: 700 15px Manrope; cursor: pointer; width: 100%; background: var(--grad); color: #04231c; box-shadow: 0 8px 24px rgba(18,214,164,.25); transition: .2s; }
+  .btn:active { transform: scale(.99); }
+  
+  .back-link-row { text-align: center; margin-top: 16px; }
+  .back-link-row a { font-size: 14px; font-weight: 600; color: var(--muted); }
+  .back-link-row a:hover { color: var(--txt); }
+</style>
+</head>
+<body>
+
+<div class="page">
+  <header class="top" style="margin: -20px -16px 20px -16px; background: transparent; border: none;">
+    <button class="icobtn" onclick="location.href='profile.html'" aria-label="Go back"><i class="fa-solid fa-arrow-left"></i></button>
+    <h1>Edit Profile</h1>
+  </header>
+
+  <div class="card">
+    <div class="avatar-section">
+      <div class="avatar-preview-wrap" id="changeAvatarBtn" title="Change photo">
+        <div id="avatarContainer">
+          <div class="av avph"><i class="fa-solid fa-user"></i></div>
+        </div>
+        <div class="avatar-badge-overlay"><i class="fa-solid fa-camera"></i></div>
+      </div>
+      <div class="avatar-hint">Tap photo to upload or change image</div>
+      <input type="file" id="avatarFileInput" accept="image/*" class="hide" />
+    </div>
+
+    <div class="field">
+      <label for="usernameInput">Username</label>
+      <input type="text" id="usernameInput" class="input" placeholder="Your display name" />
+    </div>
+
+    <div class="field">
+      <label for="bioInput">Bio</label>
+      <textarea id="bioInput" class="input" placeholder="Write a short bio about yourself..."></textarea>
+    </div>
+
+    <button class="btn" id="saveProfileBtn">Save Changes</button>
+  </div>
+
+  <div class="back-link-row">
+    <a href="profile.html"><i class="fa-solid fa-arrow-left"></i> Back to Profile</a>
+  </div>
+</div>
+
+<script type="module">
+import {
+  db, requireAuth, $, esc, toast,
+  doc, updateDoc, serverTimestamp
+} from "./chepta.js";
+
+let ME = null, PROF = null;
+let newPhotoBase64 = null;
+
+requireAuth((user, profile) => {
+  ME = user; PROF = profile;
+  
+  // Populate existing data
+  $('usernameInput').value = profile.username || profile.displayName || "";
+  $('bioInput').value = profile.bio || "";
+  
+  const currentPhoto = profile.photoB64 || profile.avatarUrl || profile.profilePic || "";
+  if (currentPhoto) {
+    newPhotoBase64 = currentPhoto;
+    $('avatarContainer').innerHTML = `<img src="${currentPhoto}" class="av" />`;
+  } else {
+    const initial = (profile.username || "U")[0].toUpperCase();
+    $('avatarContainer').innerHTML = `<div class="av avph">${initial}</div>`;
+  }
+});
+
+// Trigger image picker
+$('changeAvatarBtn').onclick = () => $('avatarFileInput').click();
+
+$('avatarFileInput').onchange = (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+
+  if (file.size > 1024 * 1024) {
+    toast("Image is too large. Please select an image under 1MB.");
+    return;
+  }
+
+  const reader = new FileReader();
+  reader.onload = (uploadEvent) => {
+    // Compress or store base64 preview
+    const base64String = uploadEvent.target.result;
+    newPhotoBase64 = base64String;
+    $('avatarContainer').innerHTML = `<img src="${base64String}" class="av" />`;
+  };
+  reader.readAsDataURL(file);
+};
+
+// Save changes handler
+$('saveProfileBtn').onclick = async () => {
+  const btn = $('saveProfileBtn');
+  const newUsername = $('usernameInput').value.trim();
+  const newBio = $('bioInput').value.trim();
+
+  if (!newUsername) {
+    toast("Username cannot be empty");
+    return;
+  }
+
+  btn.disabled = true;
+  btn.textContent = "Saving...";
+
+  try {
+    await updateDoc(doc(db, 'users', ME.uid), {
+      username: newUsername,
+      displayName: newUsername,
+      bio: newBio,
+      photoB64: newPhotoBase64 || "",
+      updatedAt: serverTimestamp()
+    });
+
+    toast("Profile updated successfully!");
+    setTimeout(() => {
+      location.href = 'profile.html';
+    }, 800);
+  } catch (err) {
+    console.error(err);
+    toast("Failed to update profile");
+    btn.disabled = false;
+    btn.textContent = "Save Changes";
+  }
+};
+</script>
+
+</body>
+</html>

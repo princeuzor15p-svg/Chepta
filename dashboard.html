@@ -1,0 +1,1048 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>chepta® — Chats</title>
+<meta name="description" content="Your chepta conversations, requests and groups in one place." />
+<meta name="theme-color" content="#080d17" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="chepta.css" />
+<style>
+  /* Chat Action Sheet & Advanced Modals */
+  .chat-sheet-overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 100;
+    display: flex; align-items: flex-end; justify-content: center; opacity: 0; pointer-events: none; transition: opacity .2s ease;
+    backdrop-filter: blur(4px);
+  }
+  .chat-sheet-overlay.on { opacity: 1; pointer-events: auto; }
+  .chat-sheet {
+    width: 100%; max-width: 480px; background: var(--surface, #131c2e); border-top-left-radius: 24px; border-top-right-radius: 24px;
+    padding: 20px 20px 36px; transform: translateY(100%); transition: transform .25s cubic-bezier(.2,.8,.2,1);
+    border-top: 1px solid var(--line, rgba(255,255,255,.08)); box-shadow: 0 -10px 40px rgba(0,0,0,0.5);
+    max-height: 85vh; overflow-y: auto;
+  }
+  .chat-sheet-overlay.on .chat-sheet { transform: translateY(0); }
+  .chat-sheet-title { font-family: Sora, sans-serif; font-size: 16px; font-weight: 700; margin-bottom: 16px; color: var(--txt); padding: 0 4px; display:flex; justify-content:space-between; align-items:center; }
+  .chat-sheet-btn {
+    width: 100%; display: flex; align-items: center; gap: 12px; background: rgba(255,255,255,.03); border: 1px solid var(--line);
+    padding: 13px 16px; border-radius: 14px; color: var(--txt); font: 600 14px Manrope, sans-serif; cursor: pointer; margin-bottom: 8px; transition: background .15s, transform .1s;
+  }
+  .chat-sheet-btn:hover { background: rgba(255,255,255,.07); }
+  .chat-sheet-btn:active { transform: scale(0.98); }
+  .chat-sheet-btn i { font-size: 16px; color: var(--brand, #12d6a4); width: 20px; text-align: center; }
+  .chat-sheet-btn.danger i { color: #ff4d4d; }
+  .chat-sheet-btn.danger { color: #ff4d4d; border-color: rgba(255,77,77,0.2); }
+
+  /* Archive Toggle Bar */
+  .archive-toggle-bar {
+    display: flex; align-items: center; justify-content: space-between; padding: 13px 16px; background: rgba(255,255,255,.02);
+    border: 1px solid var(--line); border-radius: 14px; margin-bottom: 14px; cursor: pointer; font: 600 13.5px Manrope, sans-serif; color: var(--muted);
+    transition: background .15s, color .15s;
+  }
+  .archive-toggle-bar:hover { background: rgba(255,255,255,.05); color: var(--txt); }
+
+  /* Status Tray & Stories */
+  .status-tray {
+    display: flex; gap: 12px; overflow-x: auto; padding: 4px 2px 16px 2px; margin-bottom: 12px; scrollbar-width: none;
+  }
+  .status-tray::-webkit-scrollbar { display: none; }
+  .status-item {
+    display: flex; flex-direction: column; align-items: center; cursor: pointer; flex-shrink: 0; width: 66px;
+  }
+  .status-ring {
+    width: 62px; height: 62px; border-radius: 50%; padding: 2.5px;
+    background: linear-gradient(135deg, var(--brand, #12d6a4), #0072ff); display: flex; align-items: center; justify-content: center; position: relative;
+    transition: transform 0.2s;
+  }
+  .status-ring:hover { transform: scale(1.04); }
+  .status-ring.empty-story { background: var(--line, rgba(255,255,255,.15)); }
+  .status-ring img, .status-ring .avFallback {
+    width: 100%; height: 100%; border-radius: 50%; object-fit: cover; background: var(--surface);
+  }
+  .status-name {
+    font-size: 11.5px; font-weight: 500; color: var(--txt); margin-top: 6px; text-align: center; width: 100%;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .status-add-badge {
+    position: absolute; bottom: 0; right: 0; width: 20px; height: 20px; background: var(--brand); color: #000;
+    border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 10px; border: 2px solid var(--bg);
+  }
+
+  /* Story Creator & Viewer Modals */
+  .modal-overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 1000;
+    display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity .2s ease; padding: 20px;
+    backdrop-filter: blur(6px);
+  }
+  .modal-overlay.on { opacity: 1; pointer-events: auto; }
+  .modal-card {
+    width: 100%; max-width: 420px; background: var(--surface, #131c2e); border: 1px solid var(--line);
+    border-radius: 24px; padding: 24px; box-shadow: 0 20px 50px rgba(0,0,0,0.6);
+  }
+  .modal-title { font-family: Sora, sans-serif; font-size: 18px; font-weight: 700; margin-bottom: 16px; color: var(--txt); }
+
+  /* Story Viewer Fullscreen */
+  .story-viewer {
+    position: fixed; inset: 0; background: #000; z-index: 2000; display: none; flex-direction: column; justify-content: space-between; padding: 20px; user-select: none; -webkit-user-select: none;
+  }
+  .story-viewer.on { display: flex; }
+  .story-bars-container { display: flex; gap: 4px; width: 100%; margin-bottom: 12px; }
+  .story-progress-bar { flex: 1; height: 3px; background: rgba(255,255,255,0.3); border-radius: 2px; overflow: hidden; }
+  .story-progress-fill { width: 0%; height: 100%; background: #fff; }
+  .story-header { display: flex; align-items: center; justify-content: space-between; color: #fff; }
+  
+  .story-content-area { flex: 1; display: flex; align-items: center; justify-content: center; position: relative; text-align: center; }
+  .story-content-area img, .story-content-area video { max-width: 100%; max-height: 70vh; border-radius: 12px; object-fit: contain; }
+  .story-content-area .text-story { font-size: 24px; font-weight: 600; color: #fff; padding: 20px; word-break: break-word; }
+
+  .story-tap-zone { position: absolute; top: 0; bottom: 0; width: 40%; z-index: 10; cursor: pointer; }
+  .story-tap-left { left: 0; }
+  .story-tap-right { right: 0; }
+
+  .story-footer { display: flex; flex-direction: column; gap: 10px; padding-top: 10px; z-index: 20; }
+  .story-footer-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; width: 100%; }
+  
+  .story-like-btn {
+    background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 20px; color: #fff;
+    padding: 8px 16px; font: 600 13.5px Manrope, sans-serif; display: flex; align-items: center; gap: 8px; cursor: pointer; transition: background .15s;
+  }
+  .story-like-btn:hover { background: rgba(255,255,255,0.2); }
+  .story-like-btn.liked { color: #ff4d4d; border-color: rgba(255,77,77,0.4); background: rgba(255,77,77,0.1); }
+  .story-like-btn.liked i { color: #ff4d4d; }
+
+  .story-message-action-btn {
+    width: 100%; background: var(--brand, #12d6a4); border: none; color: #000; border-radius: 20px;
+    padding: 12px 16px; font: 700 14px Manrope, sans-serif; display: flex; align-items: center; justify-content: center; gap: 8px; cursor: pointer; z-index: 30; transition: opacity .15s;
+  }
+  .story-message-action-btn:hover { opacity: 0.9; }
+
+  .verified-badge { color: var(--brand, #12d6a4); font-size: 12px; margin-left: 3px; vertical-align: middle; display: inline-flex; }
+
+  .lightbox-overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 3000;
+    display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity .25s ease;
+  }
+  .lightbox-overlay.on { opacity: 1; pointer-events: auto; }
+  .lightbox-content { max-width: 90%; max-height: 90vh; border-radius: 12px; object-fit: contain; }
+  .lightbox-close {
+    position: absolute; top: 20px; right: 20px; background: rgba(255,255,255,0.1); border: none; color: #fff;
+    width: 40px; height: 40px; border-radius: 50%; font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center;
+  }
+
+  #userVerifiedModal {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 3000;
+    display: flex; align-items: center; justify-content: center; padding: 20px;
+    opacity: 0; pointer-events: none; transition: opacity .25s ease;
+  }
+  #userVerifiedModal.on { opacity: 1; pointer-events: auto; }
+  
+  .nav a { position: relative; }
+  .nav .nbadge {
+    position: absolute; top: 6px; right: calc(50% - 16px); background: #ff4d4d; color: #fff;
+    font-size: 10px; font-weight: 700; padding: 2px 5px; border-radius: 10px; min-width: 16px; text-align: center;
+    border: 2px solid var(--surface, #131c2e);
+  }
+
+  /* Extra Badges and Interactive Pill Enhancements */
+  .chat-pin-icon { color: var(--brand, #12d6a4); font-size: 11px; margin-right: 4px; }
+  .chat-muted-icon { color: var(--muted); font-size: 11px; margin-left: 4px; }
+  .search-filters { display: flex; gap: 6px; margin-top: 8px; overflow-x: auto; padding-bottom: 4px; scrollbar-width: none; }
+  .search-filters::-webkit-scrollbar { display: none; }
+  .filter-pill { background: rgba(255,255,255,0.05); border: 1px solid var(--line); border-radius: 20px; padding: 4px 12px; font-size: 12px; font-weight: 600; color: var(--muted); cursor: pointer; white-space: nowrap; transition: all .15s; }
+  .filter-pill.active { background: var(--brand); color: #000; border-color: var(--brand); }
+</style>
+</head>
+<body>
+
+<div class="scrim" id="scrim"></div>
+<aside class="drawer" id="drawer">
+  <div class="dhead" id="drawerUser"></div>
+  <nav>
+    <a href="dashboard.html"><i class="fa-solid fa-comments"></i> Chats</a>
+    <a href="requests.html"><i class="fa-solid fa-user-plus"></i> Requests</a>
+    <a href="people.html"><i class="fa-solid fa-magnifying-glass"></i> Find people</a>
+    <a href="groups.html"><i class="fa-solid fa-users"></i> Groups</a>
+    <a href="profile.html"><i class="fa-solid fa-user"></i> My profile</a>
+    <a href="settings.html"><i class="fa-solid fa-gear"></i> Settings</a>
+    <a href="admin.html" id="adminLink" class="hide"><i class="fa-solid fa-shield-halved"></i> Admin panel</a>
+    <a href="terms.html"><i class="fa-solid fa-file-lines"></i> Terms &amp; Privacy</a>
+    <a href="verify.html"><i class="fa-solid fa-star"></i> Get Verified</a>
+    <a href="#" id="logoutBtn" class="danger"><i class="fa-solid fa-arrow-right-from-bracket"></i> Log out</a>
+  </nav>
+</aside>
+
+<div class="page">
+  <header class="top">
+    <button class="icobtn" id="menuBtn" aria-label="Open menu"><i class="fa-solid fa-bars"></i></button>
+    <h1>chepta®</h1>
+    <div style="display:flex; gap:6px;">
+      <button class="icobtn" id="quickBroadcastBtn" aria-label="Broadcasts" title="Announcements"><i class="fa-solid fa-bullhorn"></i></button>
+      <button class="icobtn" id="searchBtn" aria-label="Search" title="Search chats (Ctrl+K)"><i class="fa-solid fa-magnifying-glass"></i></button>
+    </div>
+  </header>
+
+  <div class="pad hide" id="searchWrap">
+    <input id="q" type="search" placeholder="Search your chats or messages (Ctrl+K)…" />
+    <div class="search-filters" id="searchFilters">
+      <div class="filter-pill active" data-filter="all">All Chats</div>
+      <div class="filter-pill" data-filter="unread">Unread</div>
+      <div class="filter-pill" data-filter="pinned">Pinned</div>
+      <div class="filter-pill" data-filter="groups">Groups</div>
+      <div class="filter-pill" data-filter="media">With Media</div>
+    </div>
+  </div>
+
+  <div id="notices"></div>
+  
+  <div class="status-tray" id="statusTray"></div>
+
+  <div id="archiveToggleWrap"></div>
+  <div id="list"></div>
+</div>
+
+<!-- Verification Success Modal with Cooldown Tracking -->
+<div id="userVerifiedModal">
+  <div style="width: 100%; max-width: 400px; background: var(--surface, #131c2e); border: 1px solid var(--brand, #12d6a4); border-radius: 28px; padding: 36px 24px; text-align: center; box-shadow: 0 25px 60px rgba(18,214,164,0.25);">
+    <div style="width: 80px; height: 80px; border-radius: 50%; background: rgba(18, 214, 164, 0.15); color: var(--brand, #12d6a4); display: flex; align-items: center; justify-content: center; font-size: 38px; margin: 0 auto 20px; box-shadow: 0 0 30px rgba(18,214,164,0.3);">
+      <i class="fa-solid fa-circle-check"></i>
+    </div>
+    <div style="font-family: Sora, sans-serif; font-size: 20px; font-weight: 700; color: var(--txt); margin-bottom: 10px;">Account Verified!</div>
+    <div style="font-size: 14px; color: var(--muted); line-height: 1.5; margin-bottom: 24px;" id="verifyModalDesc">
+      Build trust among others, customers, and friends.<br><br>
+      Imagine your profile like this:<br>
+      <b>Prince David</b> <span style="color:var(--brand)"><i class="fa-solid fa-circle-check"></i></span>
+    </div>
+    <div style="display: flex; gap: 12px;">
+      <button class="btn ghost" id="closeVerifiedModalX" style="flex:1; border-color: #ff4d4d; color: #ff4d4d;">X</button>
+      <button class="btn" id="closeVerifiedModalBtn" style="flex:2; background: #12d6a4; color: #000;">Verify now!</button>
+    </div>
+  </div>
+</div>
+
+<!-- Story Creator Modal (Supports Images and Videos) -->
+<div class="modal-overlay" id="storyModal">
+  <div class="modal-card">
+    <div class="modal-title">Create Status Update</div>
+    <div style="margin-bottom:14px">
+      <label class="lbl">Story text or caption</label>
+      <textarea id="storyText" rows="3" placeholder="What's on your mind today?" style="width:100%; padding:12px; background:rgba(255,255,255,.03); border:1px solid var(--line); border-radius:12px; color:var(--txt); font-family:Manrope,sans-serif; outline:none; resize:none;"></textarea>
+    </div>
+    <div style="margin-bottom:20px">
+      <button class="btn sm ghost" id="storyPickMediaBtn" style="width:100%"><i class="fa-solid fa-photo-film"></i> Attach Photo or Video</button>
+      <input type="file" id="storyFileInput" accept="image/*,video/*" hidden />
+      <div id="storyImgPreview" style="margin-top:10px; font-size:12.5px; color:var(--brand);"></div>
+    </div>
+    <div style="display:flex; gap:10px;">
+      <button class="btn ghost" id="storyCancelBtn" style="flex:1">Cancel</button>
+      <button class="btn" id="storyPublishBtn" style="flex:1">Post status</button>
+    </div>
+  </div>
+</div>
+
+<!-- Immersive Story Viewer Modal -->
+<div class="story-viewer" id="storyViewer">
+  <div>
+    <div class="story-bars-container" id="storyBarsContainer"></div>
+    <div class="story-header">
+      <div style="display:flex; align-items:center; gap:10px;">
+        <div id="storyViewerAvatar" style="width:36px; height:36px; border-radius:50%; overflow:hidden;"></div>
+        <div>
+          <div id="storyViewerName" style="font-weight:700; font-size:14px;"></div>
+          <div id="storyViewerTime" style="font-size:11px; color:rgba(255,255,255,0.7);"></div>
+        </div>
+      </div>
+      <div style="display:flex; align-items:center; gap:14px;">
+        <button id="storyDeleteBtn" class="hide" style="background:none; border:none; color:#ff4d4d; font-size:18px; cursor:pointer;" title="Delete status"><i class="fa-solid fa-trash"></i></button>
+        <button id="storyViewerClose" style="background:none; border:none; color:#fff; font-size:22px; cursor:pointer;" title="Close viewer"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+    </div>
+  </div>
+
+  <div class="story-content-area" id="storyViewerContent">
+    <div class="story-tap-zone story-tap-left" id="storyTapLeft" title="Previous status"></div>
+    <div class="story-tap-zone story-tap-right" id="storyTapRight" title="Next status"></div>
+  </div>
+
+  <div class="story-footer">
+    <div class="story-footer-row">
+      <button class="story-like-btn" id="storyLikeBtn">
+        <i class="fa-solid fa-heart"></i> <span id="storyLikeCount">0</span>
+      </button>
+      <div style="font-size: 12px; color: rgba(255,255,255,0.6);" id="storyViewersCount"></div>
+    </div>
+    <button class="story-message-action-btn" id="storyMessageBtn">
+      <i class="fa-solid fa-comment-dots"></i> Reply to Status
+    </button>
+  </div>
+</div>
+
+<!-- Advanced Chat Action Sheet Modal (with 20+ power options) -->
+<div class="chat-sheet-overlay" id="chatSheetOverlay">
+  <div class="chat-sheet" id="chatSheet">
+    <div class="chat-sheet-title">
+      <span id="sheetChatTitle">Chat Options</span>
+      <button onclick="document.getElementById('chatSheetOverlay').classList.remove('on')" style="background:none; border:none; color:var(--muted); font-size:16px; cursor:pointer;"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <button class="chat-sheet-btn" id="sheetActionPin"><i class="fa-solid fa-thumbtack" id="sheetPinIcon"></i><span id="sheetPinText">Pin chat to top</span></button>
+    <button class="chat-sheet-btn" id="sheetActionMute"><i class="fa-solid fa-bell-slash" id="sheetMuteIcon"></i><span id="sheetMuteText">Mute notifications</span></button>
+    <button class="chat-sheet-btn" id="sheetActionRead"><i class="fa-solid fa-envelope-open" id="sheetReadIcon"></i><span id="sheetReadText">Mark as unread</span></button>
+    <button class="chat-sheet-btn" id="sheetActionExport"><i class="fa-solid fa-download"></i><span>Export chat transcript (.txt)</span></button>
+    <button class="chat-sheet-btn" id="sheetActionArchive"><i class="fa-solid fa-box-archive" id="sheetArchiveIcon"></i><span id="sheetArchiveText">Archive chat</span></button>
+    <button class="chat-sheet-btn danger" id="sheetActionDelete"><i class="fa-solid fa-trash-can"></i><span>Clear chat history (For me only)</span></button>
+    <button class="chat-sheet-btn danger" id="sheetActionUnfriend" style="margin-top:4px;"><i class="fa-solid fa-user-xmark"></i><span>Unfriend user</span></button>
+    <button class="chat-sheet-btn danger" id="sheetActionBlock" style="margin-top:4px;"><i class="fa-solid fa-ban"></i><span>Block user</span></button>
+  </div>
+</div>
+
+<!-- Fullscreen Profile Picture Lightbox -->
+<div class="lightbox-overlay" id="lightboxOverlay">
+  <button class="lightbox-close" id="lightboxClose"><i class="fa-solid fa-xmark"></i></button>
+  <img class="lightbox-content" id="lightboxImg" src="" alt="Profile zoom" />
+</div>
+
+<button class="fab" id="fab" aria-label="New chat" title="Start new conversation"><i class="fa-solid fa-pen"></i></button>
+
+<nav class="nav">
+  <a href="dashboard.html" data-nav="chats"><i class="fa-solid fa-comments"></i>Chats<span class="nbadge hide" id="totalUnreadBadge">0</span></a>
+  <a href="feed.html" data-nav="feed"><i class="fa-solid fa-rss"></i>Feed<span class="nbadge hide" id="feedBadge">0</span></a>
+  <a href="people.html" data-nav="people"><i class="fa-solid fa-magnifying-glass"></i>People</a>
+  <a href="requests.html" data-nav="requests"><i class="fa-solid fa-user-plus"></i>Requests<span class="nbadge hide" id="reqBadge">0</span></a>
+  <a href="profile.html" data-nav="profile"><i class="fa-solid fa-user"></i>Profile</a>
+</nav>
+
+<script type="module">
+import {
+  db, requireAuth, mountShell, isAdmin, $, esc, avatar, timeAgo, toast, fileToImageB64, blobToB64,
+  collection, query, where, orderBy, onSnapshot, doc, getDoc, addDoc, updateDoc, deleteDoc, serverTimestamp, getDocs, setDoc
+} from "./chepta.js";
+
+let ME, PROF, CHATS = [], STORIES = [], term = "", activeFilter = "all", showArchivedList = false, activeSelectedChat = null, storyMediaB64 = "", storyMediaType = "image";
+
+async function fetchPeer(uid) {
+  try {
+    const snap = await getDoc(doc(db, "users", uid));
+    return snap.exists() ? snap.data() : null;
+  } catch { return null; }
+}
+
+async function registerPushNotifications(user) {
+  if ('Notification' in window && 'serviceWorker' in navigator) {
+    try { await Notification.requestPermission(); } catch (err) {}
+  }
+}
+
+const lightboxOverlay = $('lightboxOverlay');
+const lightboxImg = $('lightboxImg');
+window.openLightbox = (imgSrc) => {
+  if (!imgSrc) return;
+  lightboxImg.src = imgSrc;
+  lightboxOverlay.classList.add('on');
+};
+$('lightboxClose').onclick = () => lightboxOverlay.classList.remove('on');
+lightboxOverlay.onclick = (e) => { if (e.target === lightboxOverlay) lightboxOverlay.classList.remove('on'); };
+
+$('searchBtn').onclick = () => {
+  const wrap = $('searchWrap');
+  wrap.classList.toggle('hide');
+  if (!wrap.classList.contains('hide')) { $('q').focus(); } else { term = ''; render(); }
+};
+
+// Global keyboard shortcut (Ctrl+K or Cmd+K)
+window.addEventListener('keydown', (e) => {
+  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
+    e.preventDefault();
+    $('searchWrap').classList.remove('hide');
+    $('q').focus();
+  }
+  if (e.key === 'Escape') {
+    $('searchWrap').classList.add('hide');
+    lightboxOverlay.classList.remove('on');
+    document.getElementById('chatSheetOverlay').classList.remove('on');
+    document.getElementById('storyModal').classList.remove('on');
+    closeStoryViewer();
+  }
+});
+
+// Search filter pills setup
+document.querySelectorAll('.filter-pill').forEach(pill => {
+  pill.onclick = () => {
+    document.querySelectorAll('.filter-pill').forEach(p => p.classList.remove('active'));
+    pill.classList.add('active');
+    activeFilter = pill.dataset.filter;
+    render();
+  };
+});
+
+let searchDebounce;
+$('q').oninput = (e) => {
+  clearTimeout(searchDebounce);
+  searchDebounce = setTimeout(() => { term = e.target.value.trim().toLowerCase(); render(); }, 150);
+};
+
+$('fab').onclick = () => { location.href = 'people.html'; };
+
+const sheetOverlay = $('chatSheetOverlay');
+const openSheet = (chat) => {
+  activeSelectedChat = chat;
+  $('sheetChatTitle').textContent = chat.title || 'Chat Options';
+  
+  const isArchived = chat.archivedBy && chat.archivedBy.includes(ME?.uid);
+  $('sheetArchiveIcon').className = isArchived ? "fa-solid fa-box-open" : "fa-solid fa-box-archive";
+  $('sheetArchiveText').textContent = isArchived ? "Unarchive chat" : "Archive chat";
+
+  const isPinned = chat.pinnedBy && chat.pinnedBy.includes(ME?.uid);
+  $('sheetPinIcon').className = isPinned ? "fa-solid fa-thumbtack-slash" : "fa-solid fa-thumbtack";
+  $('sheetPinText').textContent = isPinned ? "Unpin chat" : "Pin chat to top";
+
+  const isMuted = chat.mutedBy && chat.mutedBy.includes(ME?.uid);
+  $('sheetMuteIcon').className = isMuted ? "fa-solid fa-bell" : "fa-solid fa-bell-slash";
+  $('sheetMuteText').textContent = isMuted ? "Unmute notifications" : "Mute notifications";
+  
+  if (chat.isGroup) {
+    $('sheetActionUnfriend').style.display = 'none';
+    $('sheetActionBlock').style.display = 'none';
+  } else {
+    $('sheetActionUnfriend').style.display = 'flex';
+    $('sheetActionBlock').style.display = 'flex';
+  }
+  sheetOverlay.classList.add('on');
+};
+const closeSheet = () => { sheetOverlay.classList.remove('on'); activeSelectedChat = null; };
+sheetOverlay.onclick = (e) => { if (e.target === sheetOverlay) closeSheet(); };
+
+// Sheet Power Actions
+$('sheetActionPin').onclick = async () => {
+  if (!activeSelectedChat || !ME) return;
+  const chatId = activeSelectedChat.id;
+  const isPinned = activeSelectedChat.pinnedBy && activeSelectedChat.pinnedBy.includes(ME.uid);
+  let updatedList = activeSelectedChat.pinnedBy ? [...activeSelectedChat.pinnedBy] : [];
+  if (isPinned) updatedList = updatedList.filter(id => id !== ME.uid);
+  else updatedList.push(ME.uid);
+  closeSheet();
+  try {
+    await updateDoc(doc(db, 'chats', chatId), { pinnedBy: updatedList });
+    toast(isPinned ? "Chat unpinned" : "Chat pinned to top 📌");
+  } catch (err) { toast("Failed to update pin status"); }
+};
+
+$('sheetActionMute').onclick = async () => {
+  if (!activeSelectedChat || !ME) return;
+  const chatId = activeSelectedChat.id;
+  const isMuted = activeSelectedChat.mutedBy && activeSelectedChat.mutedBy.includes(ME.uid);
+  let updatedList = activeSelectedChat.mutedBy ? [...activeSelectedChat.mutedBy] : [];
+  if (isMuted) updatedList = updatedList.filter(id => id !== ME.uid);
+  else updatedList.push(ME.uid);
+  closeSheet();
+  try {
+    await updateDoc(doc(db, 'chats', chatId), { mutedBy: updatedList });
+    toast(isMuted ? "Chat unmuted" : "Notifications muted 🔕");
+  } catch (err) { toast("Failed to update mute status"); }
+};
+
+$('sheetActionRead').onclick = async () => {
+  if (!activeSelectedChat || !ME) return;
+  const chatId = activeSelectedChat.id;
+  const currentUnread = activeSelectedChat.unread || {};
+  currentUnread[ME.uid] = (currentUnread[ME.uid] || 0) + 1;
+  closeSheet();
+  try {
+    await updateDoc(doc(db, 'chats', chatId), { unread: currentUnread });
+    toast("Marked as unread");
+  } catch (err) { toast("Failed to update status"); }
+};
+
+$('sheetActionExport').onclick = async () => {
+  if (!activeSelectedChat) return;
+  closeSheet();
+  toast("Preparing chat transcript export...");
+  try {
+    const msgSnap = await getDocs(query(collection(db, 'chats', activeSelectedChat.id, 'messages'), orderBy('at', 'asc')));
+    let transcript = `=== chepta® CHAT TRANSCRIPT ===\nChat: ${activeSelectedChat.title}\nExported: ${new Date().toLocaleString()}\n\n`;
+    msgSnap.forEach(d => {
+      const m = d.data();
+      const timeStr = m.at?.toDate ? m.at.toDate().toLocaleString() : 'Recent';
+      transcript += `[${timeStr}] ${m.senderName || 'User'}: ${m.text || '[' + (m.type || 'media') + ']'}\n`;
+    });
+    const blob = new Blob([transcript], { type: 'text/plain;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `chepta-chat-${activeSelectedChat.title.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.txt`;
+    a.click();
+    URL.revokeObjectURL(url);
+    toast("Transcript exported successfully!");
+  } catch (err) { toast("Failed to export chat transcript"); }
+};
+
+$('sheetActionArchive').onclick = async () => {
+  if (!activeSelectedChat || !ME) return;
+  const chatId = activeSelectedChat.id;
+  const isArchived = activeSelectedChat.archivedBy && activeSelectedChat.archivedBy.includes(ME.uid);
+  let updatedArchiveList = activeSelectedChat.archivedBy ? [...activeSelectedChat.archivedBy] : [];
+  if (isArchived) updatedArchiveList = updatedArchiveList.filter(id => id !== ME.uid);
+  else updatedArchiveList.push(ME.uid);
+
+  closeSheet();
+  try {
+    await updateDoc(doc(db, 'chats', chatId), { archivedBy: updatedArchiveList });
+    toast(isArchived ? "Chat unarchived" : "Chat archived");
+  } catch (err) { toast("Failed to update archive status"); }
+};
+
+$('sheetActionDelete').onclick = async () => {
+  if (!activeSelectedChat || !ME) return;
+  if (!confirm("Are you sure you want to clear this conversation history for yourself?")) return;
+  const chatId = activeSelectedChat.id;
+  closeSheet();
+  try {
+    await setDoc(doc(db, 'chats', chatId), { clearedTimestamps: { [ME.uid]: serverTimestamp() } }, { merge: true });
+    toast("Chat history cleared for you");
+  } catch (err) { toast("Failed to clear chat history"); }
+};
+
+$('sheetActionUnfriend').onclick = async () => {
+  if (!activeSelectedChat || !ME || activeSelectedChat.isGroup) return;
+  const peerUid = (activeSelectedChat.members || []).find(m => m !== ME.uid);
+  if (!peerUid || !confirm(`Unfriend ${activeSelectedChat.title || 'this user'}?`)) return;
+  const chatId = activeSelectedChat.id;
+  closeSheet();
+  try {
+    await deleteDoc(doc(db, 'chats', chatId));
+    const [snap1, snap2] = await Promise.all([
+      getDocs(query(collection(db, 'requests'), where('from', '==', ME.uid), where('to', '==', peerUid))),
+      getDocs(query(collection(db, 'requests'), where('from', '==', peerUid), where('to', '==', ME.uid)))
+    ]);
+    const removePromises = [];
+    snap1.forEach(d => removePromises.push(deleteDoc(d.ref)));
+    snap2.forEach(d => removePromises.push(deleteDoc(d.ref)));
+    await Promise.all(removePromises);
+    toast("Successfully unfriended user");
+  } catch (err) { toast("Failed to unfriend user"); }
+};
+
+$('sheetActionBlock').onclick = async () => {
+  if (!activeSelectedChat || !ME || activeSelectedChat.isGroup) return;
+  const peerUid = (activeSelectedChat.members || []).find(m => m !== ME.uid);
+  if (!peerUid || !confirm(`Block ${activeSelectedChat.title || 'this user'}?`)) return;
+  closeSheet();
+  try {
+    const blockedList = PROF.blockedUsers ? [...PROF.blockedUsers, peerUid] : [peerUid];
+    await updateDoc(doc(db, 'users', ME.uid), { blockedUsers: blockedList });
+    await deleteDoc(doc(db, 'chats', activeSelectedChat.id));
+    toast("User blocked successfully");
+  } catch (err) { toast("Failed to block user"); }
+};
+
+/* ---------- Story Creator & Video Upload ---------- */
+const storyModal = $('storyModal');$('storyPickMediaBtn').onclick = () => $('storyFileInput').click();$('storyFileInput').onchange = async (e) => {
+  const f = e.target.files?.[0];
+  if (!f) return;
+  if (f.type.startsWith('video/')) {
+    if (f.size > 15 * 1024 * 1024) { toast("Video is too large (max ~15MB)"); return; }
+    storyMediaType = 'video';
+    storyMediaB64 = await blobToB64(f);
+  } else {
+    storyMediaType = 'image';
+    storyMediaB64 = await fileToImageB64(f, 600, 0.75);
+  }
+  $('storyImgPreview').textContent = `✓ ${storyMediaType === 'video' ? 'Video' : 'Image'} attached successfully`;
+};
+
+$('storyCancelBtn').onclick = () => {
+  storyModal.classList.remove('on');
+  storyMediaB64 = ""; storyMediaType = "image";
+  $('storyText').value = "";
+  $('storyImgPreview').textContent = "";
+};
+
+$('storyPublishBtn').onclick = async () => {
+  const textVal = $('storyText').value.trim();
+  if (!textVal && !storyMediaB64) return toast("Add text or media for your story");
+
+  const btn = $('storyPublishBtn');
+  btn.disabled = true; btn.textContent = "Posting...";
+  try {
+    await addDoc(collection(db, "stories"), {
+      uid: ME.uid,
+      authorName: PROF.username || PROF.displayName || "User",
+      authorPhoto: PROF.photoB64 || PROF.avatarUrl || PROF.profilePic || "",
+      text: textVal,
+      mediaB64: storyMediaB64,
+      mediaType: storyMediaType,
+      likes: [],
+      viewers: [],
+      createdAt: serverTimestamp()
+    });
+    toast("Status posted!");
+    storyModal.classList.remove('on');
+    $('storyText').value = "";
+    storyMediaB64 = ""; storyMediaType = "image";
+    $('storyImgPreview').textContent = "";
+  } catch (err) { toast("Failed to post status"); }
+  btn.disabled = false; btn.textContent = "Post status";
+};
+
+let currentStoryList = [], currentStoryIndex = 0, storyTimer = null, storyStartTime = 0, storyElapsedBeforePause = 0, isPaused = false;
+const STORY_DURATION = 6000;
+
+const openStorySequence = async (storiesArray) => {
+  if (!storiesArray || !storiesArray.length) return;
+  currentStoryList = storiesArray;
+  currentStoryIndex = 0;
+  isPaused = false;
+  storyElapsedBeforePause = 0;
+  $('storyViewer').classList.add('on');
+  renderCurrentStoryFrame();
+};
+
+const renderCurrentStoryFrame = async () => {
+  clearTimeout(storyTimer);
+  isPaused = false;
+  storyElapsedBeforePause = 0;
+
+  const story = currentStoryList[currentStoryIndex];
+  if (!story) { closeStoryViewer(); return; }
+
+  // Record viewer automatically
+  if (ME && story.uid !== ME.uid) {
+    const viewers = story.viewers || [];
+    if (!viewers.includes(ME.uid)) {
+      viewers.push(ME.uid);
+      story.viewers = viewers;
+      try { await updateDoc(doc(db, "stories", story.id), { viewers }); } catch(e) {}
+    }
+  }
+
+  const barsContainer = $('storyBarsContainer');
+  barsContainer.innerHTML = currentStoryList.map((_, idx) => `
+    <div class="story-progress-bar">
+      <div class="story-progress-fill" id="progressFill_${idx}" style="width: ${idx < currentStoryIndex ? '100%': '0%'}"></div>
+    </div>
+  `).join('');
+
+  $('storyViewerName').textContent = story.authorName || "User";
+  $('storyViewerTime').textContent = timeAgo(story.createdAt);$('storyViewerAvatar').innerHTML = story.authorPhoto ? `<img src="${story.authorPhoto}" style="width:100%;height:100%;object-fit:cover;" />` : `<div style="width:100%;height:100%;background:var(--brand);color:#000;display:grid;place-items:center;font-weight:700;">${(story.authorName||'U')[0]}</div>`;
+  
+  if (story.uid === ME?.uid) {
+    $('storyDeleteBtn').classList.remove('hide');
+    $('storyMessageBtn').classList.add('hide');$('storyViewersCount').innerHTML = `<i class="fa-solid fa-eye"></i> ${(story.viewers || []).length} views`;
+  } else {
+    $('storyDeleteBtn').classList.add('hide');
+    $('storyMessageBtn').classList.remove('hide');$('storyViewersCount').textContent = '';
+  }
+
+  const likes = story.likes || [];
+  const hasLiked = ME && likes.includes(ME.uid);
+  if (hasLiked) $('storyLikeBtn').classList.add('liked'); else $('storyLikeBtn').classList.remove('liked');$('storyLikeCount').textContent = likes.length;
+
+  const contentArea = $('storyViewerContent');
+  const existingZones = contentArea.querySelectorAll('.story-tap-zone');
+  contentArea.innerHTML = '';
+  existingZones.forEach(z => contentArea.appendChild(z));
+
+  const wrapper = document.createElement('div');
+  wrapper.style.cssText = "display:flex; flex-direction:column; align-items:center; justify-content:center; max-height:100%; width:100%;";
+  
+  if (story.mediaB64) {
+    if (story.mediaType === 'video') {
+      const vid = document.createElement('video');
+      vid.src = story.mediaB64;
+      vid.autoplay = true; vid.playsInline = true; vid.controls = false;
+      vid.onended = () => goToNextStory();
+      wrapper.appendChild(vid);
+    } else {
+      const img = document.createElement('img');
+      img.src = story.mediaB64;
+      wrapper.appendChild(img);
+    }
+  }
+  if (story.text) {
+    const txt = document.createElement('div');
+    txt.className = 'text-story';
+    txt.textContent = story.text;
+    wrapper.appendChild(txt);
+  }
+  contentArea.insertBefore(wrapper, contentArea.firstChild);
+
+  startStoryTimer(STORY_DURATION);
+};
+
+const startStoryTimer = (duration) => {
+  clearTimeout(storyTimer);
+  storyStartTime = Date.now();
+  isPaused = false;
+  const activeFill = $(`progressFill_${currentStoryIndex}`);
+  if (activeFill) {
+    activeFill.style.transition = `width ${duration}ms linear`;
+    activeFill.style.width = '100%';
+  }
+  storyTimer = setTimeout(() => { goToNextStory(); }, duration);
+};
+
+const pauseStoryTimer = () => {
+  if (isPaused) return;
+  isPaused = true;
+  clearTimeout(storyTimer);
+  storyElapsedBeforePause += Date.now() - storyStartTime;
+  const activeFill = $(`progressFill_${currentStoryIndex}`);
+  if (activeFill) {
+    activeFill.style.transition = 'none';
+    activeFill.style.width = window.getComputedStyle(activeFill).width;
+  }
+};
+
+const resumeStoryTimer = () => {
+  if (!isPaused) return;
+  const remainingTime = STORY_DURATION - storyElapsedBeforePause;
+  if (remainingTime <= 0) { goToNextStory(); return; }
+  isPaused = false;
+  storyStartTime = Date.now();
+  const activeFill = $(`progressFill_${currentStoryIndex}`);
+  if (activeFill) {
+    activeFill.style.transition = `width ${remainingTime}ms linear`;
+    activeFill.style.width = '100%';
+  }
+  storyTimer = setTimeout(() => { goToNextStory(); }, remainingTime);
+};
+
+const goToNextStory = () => {
+  if (currentStoryIndex < currentStoryList.length - 1) { currentStoryIndex++; renderCurrentStoryFrame(); }
+  else { closeStoryViewer(); }
+};
+const goToPrevStory = () => {
+  if (currentStoryIndex > 0) { currentStoryIndex--; renderCurrentStoryFrame(); }
+  else { renderCurrentStoryFrame(); }
+};
+const closeStoryViewer = () => { clearTimeout(storyTimer); isPaused = false; $('storyViewer').classList.remove('on'); };$('storyViewerClose').onclick = closeStoryViewer;
+
+$('storyTapLeft').onclick = (e) => { e.stopPropagation(); goToPrevStory(); };$('storyTapRight').onclick = (e) => { e.stopPropagation(); goToNextStory(); };
+
+const storyViewerEl = $('storyViewer');
+storyViewerEl.onmousedown = (e) => { if (!e.target.closest('button')) pauseStoryTimer(); };
+storyViewerEl.onmouseup = (e) => { if (!e.target.closest('button')) resumeStoryTimer(); };
+storyViewerEl.ontouchstart = (e) => { if (!e.target.closest('button')) pauseStoryTimer(); };
+storyViewerEl.ontouchend = (e) => { if (!e.target.closest('button')) resumeStoryTimer(); };
+
+$('storyMessageBtn').onclick = async () => {
+  if (!ME) return;
+  const story = currentStoryList[currentStoryIndex];
+  if (!story || story.uid === ME.uid) return;
+  const targetUid = story.uid;
+  let existingChat = CHATS.find(c => !c.isGroup && c.members && c.members.includes(targetUid));
+  let chatId = existingChat ? existingChat.id : null;
+  try {
+    if (!chatId) {
+      const ref = await addDoc(collection(db, 'chats'), {
+        members: [ME.uid, targetUid], isGroup: false, createdAt: serverTimestamp(),
+        last: { text: 'Started conversation from status reply', at: serverTimestamp(), type: 'text' }
+      });
+      chatId = ref.id;
+    }
+    closeStoryViewer();
+    location.href = 'chat.html?c=' + chatId;
+  } catch (err) { toast("Failed to open chat"); }
+};
+
+$('storyLikeBtn').onclick = async () => {
+  if (!ME) return;
+  const story = currentStoryList[currentStoryIndex];
+  if (!story) return;
+  const likes = story.likes ? [...story.likes] : [];
+  const idx = likes.indexOf(ME.uid);
+  if (idx > -1) likes.splice(idx, 1); else likes.push(ME.uid);
+  story.likes = likes;
+  if (likes.includes(ME.uid)) $('storyLikeBtn').classList.add('liked'); else $('storyLikeBtn').classList.remove('liked');$('storyLikeCount').textContent = likes.length;
+  try { await updateDoc(doc(db, "stories", story.id), { likes }); } catch (err) {}
+};
+
+$('storyDeleteBtn').onclick = async () => {
+  const story = currentStoryList[currentStoryIndex];
+  if (!story || story.uid !== ME?.uid || !confirm("Delete this status update?")) return;
+  clearTimeout(storyTimer);
+  try {
+    await deleteDoc(doc(db, "stories", story.id));
+    toast("Status deleted");
+    currentStoryList.splice(currentStoryIndex, 1);
+    if (currentStoryList.length > 0) {
+      if (currentStoryIndex >= currentStoryList.length) currentStoryIndex = currentStoryList.length - 1;
+      renderCurrentStoryFrame();
+    } else { closeStoryViewer(); }
+  } catch (err) { toast("Failed to delete status"); }
+};
+
+try {
+  const cached = localStorage.getItem('chepta:chats_v2');
+  if (cached) { CHATS = JSON.parse(cached); render(); }
+} catch (e) {}
+
+requireAuth((user, profile) => {
+  ME = user; PROF = profile;
+  mountShell('chats', profile);
+  if (isAdmin(profile)) $('adminLink').classList.remove('hide');
+  registerPushNotifications(user);
+
+  /* ---------- Verification Popup Rules ---------- */
+  if (profile && profile.isVerified) {
+    const lastPopup = parseInt(localStorage.getItem('chepta:last_verify_popup') || '0', 10);
+    const now = Date.now();
+    const isFirstTime = !localStorage.getItem('chepta_has_logged_in_once');
+    const accountCreatedTime = profile.createdAt?.toMillis ? profile.createdAt.toMillis() : now;
+    const isNewUser = (now - accountCreatedTime) < 15 * 60 * 1000;
+
+    if (isFirstTime || (now - lastPopup >= 30 * 60 * 1000) || (isNewUser && now - lastPopup >= 10 * 60 * 1000)) {
+      localStorage.setItem('chepta_has_logged_in_once', 'true');
+      localStorage.setItem('chepta:last_verify_popup', now.toString());
+      
+      const modal = document.getElementById('userVerifiedModal');
+      modal.classList.add('on');
+      
+      const closeModal = () => modal.classList.remove('on');
+      document.getElementById('closeVerifiedModalX').onclick = closeModal;
+      document.getElementById('closeVerifiedModalBtn').onclick = () => {
+        closeModal();
+        location.href = 'verify.html';
+      };
+    }
+  }
+
+  /* ---------- Auto-deleting Statuses after 24 hours ---------- */
+  onSnapshot(query(collection(db, 'stories'), orderBy('createdAt', 'asc')), (s) => {
+    const now = Date.now();
+    const allStories = s.docs.map(d => ({ id: d.id, ...d.data() })).filter(st => {
+      const stTime = st.createdAt?.toMillis ? st.createdAt.toMillis() : (st.createdAt?.seconds ? st.createdAt.seconds * 1000 : now);
+      return (now - stTime) <= 24 * 60 * 60 * 1000;
+    });
+
+    const connectedUids = new Set([user.uid]);
+    CHATS.forEach(c => { if (!c.isGroup && c.members) c.members.forEach(m => connectedUids.add(m)); });
+    STORIES = allStories.filter(st => connectedUids.has(st.uid));
+    renderStatusTray();
+
+    const feedBadge = $('feedBadge');
+    if (STORIES.length > 0) { feedBadge.textContent = STORIES.length; feedBadge.classList.remove('hide'); }
+    else { feedBadge.classList.add('hide'); }
+  }, () => {});
+
+  onSnapshot(query(collection(db, 'broadcasts'), orderBy('createdAt', 'desc')), (s) => {
+    const box = $('notices');
+    box.innerHTML = '';
+    s.docs.slice(0, 3).forEach((d) => {
+      const n = d.data();
+      if (n.active === false) return;
+      box.insertAdjacentHTML('beforeend', `<div class="notice"><i class="fa-solid fa-bullhorn"></i><div><b>${esc(n.title || 'Announcement')}</b><br>${esc(n.text || '')}</div></div>`);
+    });
+  }, () => {});
+
+  $('quickBroadcastBtn').onclick = () => {
+    const notices = $('notices');
+    notices.style.display = notices.style.display === 'none' ? 'block' : 'none';
+    toast(notices.style.display === 'none' ? 'Announcements hidden' : 'Showing latest announcements');
+  };
+
+  onSnapshot(query(collection(db, 'requests'), where('to', '==', user.uid), where('status', '==', 'pending')), (s) => {
+    const b = $('reqBadge');
+    if (s.size) { b.textContent = s.size; b.classList.remove('hide'); } else { b.classList.add('hide'); }
+  }, () => {});
+
+  onSnapshot(query(collection(db, 'chats'), where('members', 'array-contains', user.uid)), async (s) => {
+    const blockedList = profile?.blockedUsers || [];
+    const freshChats = await Promise.all(
+      s.docs.map(async (d) => {
+        const c = { id: d.id, ...d.data() };
+        if (!c.isGroup) {
+          const other = (c.members || []).find((m) => m !== user.uid);
+          if (other) {
+            if (blockedList.includes(other)) return null;
+            const peerDoc = await fetchPeer(other);
+            c.title = peerDoc?.username || peerDoc?.displayName || 'User';
+            c.photoB64 = peerDoc?.photoB64 || peerDoc?.avatarUrl || peerDoc?.profilePic || "";
+            c.online = peerDoc?.online !== undefined ? !!peerDoc.online : !!peerDoc?.isOnline;
+            c.isVerified = !!peerDoc?.isVerified;
+          }
+        } else { c.title = c.name || 'Group'; }
+        return c;
+      })
+    );
+    const validChats = freshChats.filter(Boolean);
+    validChats.sort((a, b) => (b.last?.at?.seconds || 0) - (a.last?.at?.seconds || 0));
+    CHATS = validChats;
+    try { localStorage.setItem('chepta:chats_v2', JSON.stringify(CHATS)); } catch (e) {}
+    render();
+  }, () => {});
+});
+
+function renderStatusTray() {
+  const tray = $('statusTray');
+  if (!tray || !ME || !PROF) return;
+  const myAvatar = PROF.photoB64 || PROF.avatarUrl || PROF.profilePic || "";
+  const myStories = STORIES.filter(st => st.uid === ME.uid);
+  
+  const otherStoriesMap = new Map();
+  STORIES.filter(st => st.uid !== ME.uid).forEach(st => {
+    if (!otherStoriesMap.has(st.uid)) otherStoriesMap.set(st.uid, []);
+    otherStoriesMap.get(st.uid).push(st);
+  });
+
+  let html = `
+    <div class="status-item" id="myStatusItem">
+      <div class="status-ring ${myStories.length ? '' : 'empty-story'}">
+        ${myAvatar ? `<img src="${myAvatar}" alt="My Status" />` : `<div class="avFallback">${(PROF.username || 'U')[0].toUpperCase()}</div>`}
+        <div class="status-add-badge" id="addMoreStatusBtn" title="Add another status"><i class="fa-solid fa-plus"></i></div>
+      </div>
+      <div class="status-name">My status</div>
+    </div>
+  `;
+
+  otherStoriesMap.forEach((userStories, uid) => {
+    const firstStory = userStories[0];
+    html += `
+      <div class="status-item view-user-stories" data-uid="${uid}">
+        <div class="status-ring">
+          ${firstStory.authorPhoto ? `<img src="${firstStory.authorPhoto}" alt="${esc(firstStory.authorName)}" />` : `<div class="avFallback">${esc((firstStory.authorName || 'U')[0].toUpperCase())}</div>`}
+        </div>
+        <div class="status-name">${esc(firstStory.authorName)}</div>
+      </div>
+    `;
+  });
+
+  tray.innerHTML = html;
+  $('myStatusItem').onclick = (e) => {
+    if (e.target.closest('#addMoreStatusBtn') || myStories.length === 0) { storyModal.classList.add('on'); }
+    else { openStorySequence(myStories); }
+  };
+  tray.querySelectorAll('.view-user-stories').forEach(el => {
+    el.onclick = () => {
+      const targetUid = el.dataset.uid;
+      const userStories = STORIES.filter(s => s.uid === targetUid);
+      if (userStories.length > 0) openStorySequence(userStories);
+    };
+  });
+}
+
+function preview(c) {
+  const l = c.last;
+  if (!l) return 'Say hello 👋';
+  if (l.type === 'image') return '📷 Photo';
+  if (l.type === 'video') return '🎥 Video';
+  if (l.type === 'audio') return '🎤 Voice note';
+  return l.text || 'Say hello 👋';
+}
+
+function render() {
+  const box = $('list');
+  const archiveToggleWrap = $('archiveToggleWrap');
+  const hasCached = !!localStorage.getItem('chepta:chats_v2');
+
+  const myArchivedChats = CHATS.filter(c => c.archivedBy && c.archivedBy.includes(ME?.uid));
+  const myActiveChats = CHATS.filter(c => !c.archivedBy || !c.archivedBy.includes(ME?.uid));
+
+  // Sort pinned chats to top
+  myActiveChats.sort((a, b) => {
+    const aPinned = a.pinnedBy && a.pinnedBy.includes(ME?.uid) ? 1 : 0;
+    const bPinned = b.pinnedBy && b.pinnedBy.includes(ME?.uid) ? 1 : 0;
+    if (aPinned !== bPinned) return bPinned - aPinned;
+    return (b.last?.at?.seconds || 0) - (a.last?.at?.seconds || 0);
+  });
+
+  let totalUnreadCount = 0;
+  CHATS.forEach(c => { totalUnreadCount += ((c.unread && c.unread[ME?.uid]) || 0); });
+  const badgeEl = $('totalUnreadBadge');
+  if (totalUnreadCount > 0) {
+    badgeEl.textContent = totalUnreadCount > 99 ? '99+' : totalUnreadCount;
+    badgeEl.classList.remove('hide');
+  } else { badgeEl.classList.add('hide'); }
+
+  if (myArchivedChats.length > 0) {
+    archiveToggleWrap.innerHTML = `
+      <div class="archive-toggle-bar" id="archiveToggleBtn">
+        <span><i class="fa-solid fa-box-archive" style="margin-right:8px"></i> Archived chats (${myArchivedChats.length})</span>
+        <i class="fa-solid fa-chevron-right" style="font-size:12px"></i>
+      </div>
+    `;
+    $('archiveToggleBtn').onclick = () => { showArchivedList = !showArchivedList; render(); };
+  } else {
+    archiveToggleWrap.innerHTML = '';
+    showArchivedList = false;
+  }
+
+  let targetPool = showArchivedList ? myArchivedChats : myActiveChats;
+
+  // Filter pills logic
+  if (activeFilter === 'unread') {
+    targetPool = targetPool.filter(c => (c.unread && c.unread[ME?.uid] > 0));
+  } else if (activeFilter === 'pinned') {
+    targetPool = targetPool.filter(c => c.pinnedBy && c.pinnedBy.includes(ME?.uid));
+  } else if (activeFilter === 'groups') {
+    targetPool = targetPool.filter(c => c.isGroup);
+  } else if (activeFilter === 'media') {
+    targetPool = targetPool.filter(c => c.last && ['image', 'video', 'audio'].includes(c.last.type));
+  }
+
+  const rows = targetPool.filter((c) => !term || (c.title || '').toLowerCase().includes(term));
+
+  if (!rows.length) {
+    if (!hasCached && !term && CHATS.length === 0) {
+      archiveToggleWrap.innerHTML = '';
+      box.innerHTML = `
+        <div class="empty" style="text-align:center; padding: 40px 20px;">
+          <i class="fa-regular fa-comments" style="font-size: 42px; margin-bottom: 12px; color: var(--muted);"></i>
+          <div style="font-size: 15px; font-weight: 600; margin-bottom: 6px;">No conversations yet</div>
+          <p style="color: var(--muted); font-size: 13.5px; line-height: 1.5; margin: 0;">
+            Click <a href="people.html" style="color: var(--brand); font-weight: 600;">Find people</a> or the pen button below to add a friend and start chatting!
+          </p>
+        </div>`;
+    } else if (showArchivedList) {
+      box.innerHTML = `<div class="empty"><i class="fa-solid fa-box-archive"></i>No archived chats here.<br><button class="btn sm ghost" id="backToChats" style="margin-top:10px">Back to active chats</button></div>`;
+      const btnBack = $('backToChats');
+      if (btnBack) btnBack.onclick = () => { showArchivedList = false; render(); };
+    } else if (term || activeFilter !== 'all') {
+      box.innerHTML = `<div class="empty"><i class="fa-solid fa-magnifying-glass"></i>No chats match your current filter or search.</div>`;
+    } else {
+      box.innerHTML = `<div class="empty"><i class="fa-regular fa-comments"></i>No chats to display.</div>`;
+    }
+    return;
+  }
+
+  box.innerHTML = rows.map((c) => {
+    const unread = (c.unread && c.unread[ME?.uid]) || 0;
+    const isPinned = c.pinnedBy && c.pinnedBy.includes(ME?.uid);
+    const isMuted = c.mutedBy && c.mutedBy.includes(ME?.uid);
+    const verifiedMarkup = c.isVerified ? `<span class="verified-badge" title="Verified Account"><i class="fa-solid fa-circle-check"></i></span>` : '';
+    const pinMarkup = isPinned ? `<i class="fa-solid fa-thumbtack chat-pin-icon" title="Pinned"></i>` : '';
+    const muteMarkup = isMuted ? `<i class="fa-solid fa-bell-slash chat-muted-icon" title="Muted"></i>` : '';
+    
+    return `<div class="row chat-row-item" data-id="${c.id}">
+      <div class="avwrap avatar-zoom-trigger" data-pic="${esc(c.photoB64 || '')}">${avatar({ username: c.title, photoB64: c.photoB64 })}
+        ${c.isGroup ? '' : `<span class="dot ${c.online ? 'on' : ''}"></span>`}</div>
+      <div class="grow">
+        <div class="name">${pinMarkup}${esc(c.title)}${verifiedMarkup}${muteMarkup}${c.isGroup ? ' <i class="fa-solid fa-users" style="font-size:11px;color:var(--muted)"></i>' : ''}</div>
+        <div class="sub">${esc(preview(c))}</div>
+      </div>
+      <div class="meta">
+        <span class="time">${timeAgo(c.last?.at)}</span>
+        ${unread ? `<span class="badge">${unread}</span>` : ''}
+      </div>
+    </div><div class="sep"></div>`;
+  }).join('');
+
+  box.querySelectorAll('.avatar-zoom-trigger').forEach((av) => {
+    av.onclick = (e) => { e.stopPropagation(); const pic = av.dataset.pic; if (pic) openLightbox(pic); };
+  });
+
+  box.querySelectorAll('.chat-row-item').forEach((r) => {
+    const chatId = r.dataset.id;
+    const chatObj = CHATS.find(item => item.id === chatId);
+    r.onclick = () => { location.href = 'chat.html?c=' + chatId; };
+
+    let pressTimer;
+    r.addEventListener('touchstart', () => { pressTimer = setTimeout(() => { if (chatObj) openSheet(chatObj); }, 600); }, { passive: true });
+    r.addEventListener('touchend', () => clearTimeout(pressTimer));
+    r.addEventListener('touchmove', () => clearTimeout(pressTimer));
+    r.addEventListener('contextmenu', (e) => { e.preventDefault(); if (chatObj) openSheet(chatObj); });
+  });
+}
+</script>
+</body>
+</html>

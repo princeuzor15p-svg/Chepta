@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>chepta® — Groups</title>
+<meta name="description" content="Create and open group chats on chepta." />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="chepta.css" />
+</head>
+<body>
+<div class="scrim" id="scrim"></div>
+<aside class="drawer" id="drawer">
+  <div class="dhead" id="drawerUser"></div>
+  <nav>
+    <a href="dashboard.html"><i class="fa-solid fa-comments"></i> Chats</a>
+    <a href="requests.html"><i class="fa-solid fa-user-plus"></i> Requests</a>
+    <a href="people.html"><i class="fa-solid fa-magnifying-glass"></i> Find people</a>
+    <a href="groups.html"><i class="fa-solid fa-users"></i> Groups</a>
+    <a href="profile.html"><i class="fa-solid fa-user"></i> My profile</a>
+    <a href="settings.html"><i class="fa-solid fa-gear"></i> Settings</a>
+    <a href="terms.html"><i class="fa-solid fa-file-lines"></i> Terms &amp; Privacy</a>
+    <a href="#" id="logoutBtn" class="danger"><i class="fa-solid fa-arrow-right-from-bracket"></i> Log out</a>
+  </nav>
+</aside>
+
+<div class="page">
+  <header class="top">
+    <button class="icobtn" id="menuBtn"><i class="fa-solid fa-bars"></i></button>
+    <h1>Groups</h1>
+    <button class="icobtn solid" id="newBtn"><i class="fa-solid fa-plus"></i></button>
+  </header>
+  <div id="list"><div class="skel"></div></div>
+
+  <div class="pad hide" id="creator">
+    <div class="card" style="display:flex;flex-direction:column;gap:12px">
+      <div><label class="lbl">Group name</label><input id="gname" maxlength="30" placeholder="Weekend crew" /></div>
+      <div><label class="lbl">Pick friends</label><div id="friends" style="max-height:250px;overflow:auto"></div></div>
+      <button class="btn" id="create">Create group</button>
+    </div>
+  </div>
+</div>
+
+<nav class="nav">
+  <a href="dashboard.html" data-nav="chats"><i class="fa-solid fa-comments"></i>Chats</a>
+  <a href="people.html" data-nav="people"><i class="fa-solid fa-magnifying-glass"></i>People</a>
+  <a href="requests.html" data-nav="requests"><i class="fa-solid fa-user-plus"></i>Requests</a>
+  <a href="profile.html" data-nav="profile"><i class="fa-solid fa-user"></i>Profile</a>
+</nav>
+
+<script type="module">
+import {
+  db, requireAuth, mountShell, $, esc, avatar, timeAgo, toast, getUser,
+  collection, query, where, onSnapshot, getDocs, addDoc, serverTimestamp,
+} from "./chepta.js";
+
+let ME, PROF, picked = new Set();
+
+requireAuth(async (user, profile) => {
+  ME = user; PROF = profile;
+  mountShell("chats", profile);
+
+  onSnapshot(query(collection(db, "chats"), where("members", "array-contains", user.uid)), (s) => {
+    const groups = s.docs.map((d) => ({ id: d.id, ...d.data() })).filter((c) => c.isGroup);
+    $("list").innerHTML = groups.length ? groups.map((g) => `
+      <div class="row" data-id="${g.id}">${avatar({ username: g.name, photoB64: g.photoB64 })}
+        <div class="grow"><div class="name">${esc(g.name)}</div>
+          <div class="sub">${g.members.length} members · ${esc(g.last?.text || "No messages yet")}</div></div>
+        <span class="time">${timeAgo(g.last?.at)}</span></div><div class="sep"></div>`).join("")
+      : `<div class="empty"><i class="fa-solid fa-users"></i>No groups yet. Tap + to create one.</div>`;
+    $("list").querySelectorAll(".row").forEach((r) => r.onclick = () => location.href = "chat.html?c=" + r.dataset.id);
+  });
+
+  const fr = await getDocs(collection(db, "users", user.uid, "friends"));
+  const users = await Promise.all(fr.docs.map((d) => getUser(d.id)));
+  $("friends").innerHTML = users.length ? users.map((u) => `
+    <div class="row" data-uid="${u.uid}" style="padding:9px 4px">${avatar(u, "sm")}
+      <div class="grow"><div class="name">@${esc(u.username)}</div></div>
+      <i class="fa-regular fa-square" data-check></i></div>`).join("")
+    : `<div class="sub">Accept some requests first to add friends.</div>`;
+  $("friends").querySelectorAll(".row").forEach((r) => r.onclick = () => {
+    const uid = r.dataset.uid, icon = r.querySelector("[data-check]");
+    if (picked.has(uid)) { picked.delete(uid); icon.className = "fa-regular fa-square"; }
+    else { picked.add(uid); icon.className = "fa-solid fa-square-check"; icon.style.color = "var(--brand)"; }
+  });
+});
+
+$("newBtn").onclick = () => $("creator").classList.toggle("hide");
+
+$("create").onclick = async () => {
+  const name = $("gname").value.trim();
+  if (name.length < 2) return toast("Give your group a name");
+  if (!picked.size) return toast("Pick at least one friend");
+  const ref = await addDoc(collection(db, "chats"), {
+    isGroup: true, name, members: [ME.uid, ...picked], admins: [ME.uid],
+    unread: {}, createdAt: serverTimestamp(),
+    last: { type: "text", text: `${PROF.username} created the group`, at: serverTimestamp(), from: ME.uid },
+  });
+  location.href = "chat.html?c=" + ref.id;
+};
+</script>
+</body>
+</html>

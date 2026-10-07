@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>chepta® - Welcome</title>
+    <link href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <link rel="stylesheet" href="chepta.css">
+    <!-- PWA Manifest Link -->
+<link rel="manifest" href="manifest.json">
+
+<!-- Mobile Theme & Apple Support -->
+<meta name="theme-color" content="#12d6a4">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="My App">
+<link rel="apple-touch-icon" href="icon-192.png">
+    <style>
+        :root {
+            --bg: #080d17; --bg-2: #0e1524; --surface: #131c2e; --surface-2: #1a2438;
+            --line: rgba(255,255,255,.08); --txt: #eaf0fb; --muted: #8d9ab4;
+            --brand: #12d6a4; --brand-2: #37e6ff; --danger: #ff5d6c;
+            --radius: 18px; --shadow: 0 24px 60px -24px rgba(0,0,0,.8);
+            --grad: linear-gradient(135deg, var(--brand), var(--brand-2));
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: Manrope, system-ui, sans-serif; -webkit-tap-highlight-color: transparent; }
+        body { background: var(--bg); color: var(--txt); height: 100vh; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+        h1, h2, h3 { font-family: Sora, system-ui, sans-serif; letter-spacing: -.02em; }
+        
+        /* Splash Screen */
+        #splash-screen {
+            position: fixed; inset: 0; background: var(--bg); display: flex; flex-direction: column;
+            align-items: center; justify-content: center; z-index: 9999; transition: opacity 0.5s ease;
+        }
+        #splash-screen h1 { font-size: 2.8rem; font-weight: 700; background: var(--grad); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 8px; }
+        #splash-screen p { color: var(--muted); font-size: 0.95rem; }
+
+        .auth-container { width: 100%; max-width: 420px; background: var(--surface); padding: 30px; border-radius: var(--radius); box-shadow: var(--shadow); display: none; border: 1px solid var(--line); position: relative; }
+        .auth-container h2 { font-size: 1.75rem; margin-bottom: 8px; font-weight: 700; color: var(--txt); }
+        .auth-container p.subtitle { color: var(--muted); font-size: 0.875rem; margin-bottom: 24px; }
+        
+        .form-group { margin-bottom: 16px; }
+        .form-group label { display: block; font-size: 0.8125rem; font-weight: 500; color: var(--muted); margin-bottom: 6px; }
+        .form-control { width: 100%; padding: 12px 14px; background: var(--bg-2); border: 1px solid var(--line); border-radius: 12px; color: var(--txt); font-size: 0.95rem; outline: none; transition: border-color 0.2s; }
+        .form-control:focus { border-color: var(--brand); }
+
+        .pfp-upload-container { display: flex; align-items: center; gap: 16px; margin-bottom: 16px; }
+        .pfp-preview { width: 60px; height: 60px; border-radius: 50%; background: var(--surface-2); display: flex; align-items: center; justify-content: center; overflow: hidden; border: 2px solid var(--line); }
+        .pfp-preview img { width: 100%; height: 100%; object-fit: cover; display: none; }
+        
+        /* Options Row */
+        .form-options { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; font-size: 0.8125rem; }
+        .remember-me { display: flex; align-items: center; gap: 8px; color: var(--muted); cursor: pointer; user-select: none; }
+        .remember-me input { accent-color: var(--brand); cursor: pointer; width: 16px; height: 16px; }
+        .forgot-link { color: var(--brand); text-decoration: none; font-weight: 500; cursor: pointer; }
+        .forgot-link:hover { text-decoration: underline; }
+
+        .btn { width: 100%; padding: 12px; background: var(--grad); color: #04231c; border: none; border-radius: 12px; font-weight: 700; font-size: 1rem; cursor: pointer; transition: transform 0.2s; margin-top: 8px; }
+        .btn:active { transform: scale(.98); }
+        .toggle-auth { text-align: center; margin-top: 16px; font-size: 0.875rem; color: var(--muted); cursor: pointer; }
+        .toggle-auth span { color: var(--brand); font-weight: 600; }
+
+        /* Inline Status Messages */
+        .status-msg { font-size: 0.85rem; margin-top: 12px; text-align: center; font-weight: 500; min-height: 20px; }
+        .status-msg.success { color: var(--brand); }
+        .status-msg.error { color: var(--danger); }
+
+        /* Modal styling */
+        .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.7); backdrop-filter: blur(6px); z-index: 10000; align-items: center; justify-content: center; padding: 20px; }
+        .modal-content { background: var(--surface); width: 100%; max-width: 400px; padding: 24px; border-radius: var(--radius); border: 1px solid var(--line); box-shadow: var(--shadow); }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+        .modal-header h3 { font-size: 1.25rem; color: var(--txt); font-weight: 600; }
+        .close-modal { color: var(--muted); font-size: 1.2rem; cursor: pointer; }
+        .close-modal:hover { color: var(--txt); }
+    </style>
+</head>
+<body>
+
+    <!-- Splash Screen -->
+    <div id="splash-screen">
+        <h1>chepta®</h1>
+        <p>Secure Modern Messaging.</p>
+        <p style="margin-top: 4px; font-size: 0.85rem;">By Prince David</p>
+    </div>
+
+    <!-- Auth Forms Container -->
+    <div class="auth-container" id="auth-box">
+        <div id="register-view">
+            <h2>Create Account</h2>
+            <p class="subtitle">Join chepta® to start messaging seamlessly.</p>
+            
+            <div class="pfp-upload-container">
+                <div class="pfp-preview" id="pfpPreviewBox">
+                    <i class="fa-solid fa-user" id="pfpIcon" style="color: var(--muted); font-size: 1.5rem;"></i>
+                    <img id="pfpImgElement" src="" alt="Preview">
+                </div>
+                <div>
+                    <label style="cursor:pointer; background:var(--surface-2); color:var(--txt); border: 1px solid var(--line); padding:8px 12px; border-radius:10px; font-size:0.8rem; display:inline-block; font-weight:600;">
+                        Upload Avatar <input type="file" id="pfpInput" accept="image/*" style="display:none;">
+                    </label>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Username</label>
+                <input type="text" id="regUsername" class="form-control" placeholder="e.g. johndoe">
+            </div>
+            <div class="form-group">
+                <label>Gmail Address</label>
+                <input type="email" id="regEmail" class="form-control" placeholder="name@gmail.com">
+            </div>
+            <div class="form-group">
+                <label>Password</label>
+                <input type="password" id="regPassword" class="form-control" placeholder="••••••••">
+            </div>
+            <button class="btn" id="registerBtn">Register Account</button>
+            <div class="status-msg" id="regStatusMsg"></div>
+            <div class="toggle-auth" onclick="toggleView('login')">Already have an account? <span>Sign In</span></div>
+        </div>
+
+        <div id="login-view" style="display:none;">
+            <h2>Welcome Back</h2>
+            <p class="subtitle">Log in to your chepta® account.</p>
+            <div class="form-group">
+                <label>Gmail Address</label>
+                <input type="email" id="loginEmail" class="form-control" placeholder="name@gmail.com">
+            </div>
+            <div class="form-group">
+                <label>Password</label>
+                <input type="password" id="loginPassword" class="form-control" placeholder="••••••••">
+            </div>
+
+            <!-- Keep me logged in & Forgot Password Controls -->
+            <div class="form-options">
+                <label class="remember-me">
+                    <input type="checkbox" id="rememberMe" checked>
+                    <span>Keep me logged in</span>
+                </label>
+                <span class="forgot-link" onclick="openResetModal()">Forgot password?</span>
+            </div>
+
+            <button class="btn" id="loginBtn">Sign In</button>
+            <div class="status-msg" id="loginStatusMsg"></div>
+            <div class="toggle-auth" onclick="toggleView('register')">Don't have an account? <span>Register</span></div>
+        </div>
+    </div>
+
+    <!-- Password Reset Modal -->
+    <div class="modal" id="resetModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Reset Password</h3>
+                <i class="fa-solid fa-xmark close-modal" onclick="closeResetModal()"></i>
+            </div>
+            <p class="subtitle" style="margin-bottom: 16px;">Enter your Gmail address to receive a password reset link.</p>
+            <div class="form-group">
+                <label>Gmail Address</label>
+                <input type="email" id="resetEmail" class="form-control" placeholder="name@gmail.com">
+            </div>
+            <button class="btn" id="sendResetBtn">Send Reset Link</button>
+            <div class="status-msg" id="resetStatusMsg"></div>
+        </div>
+    </div>
+
+    <!-- Firebase Logic Integration -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { 
+            getAuth, 
+            createUserWithEmailAndPassword, 
+            signInWithEmailAndPassword, 
+            updateProfile,
+            setPersistence,
+            browserLocalPersistence,
+            browserSessionPersistence,
+            sendPasswordResetEmail
+        } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { getFirestore, doc, setDoc, getDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+          apiKey: "AIzaSyA00b2pKX1nYFPQd_Ev7twn0W-XYeU_6v8",
+          authDomain: "chepta-6097c.firebaseapp.com",
+          projectId: "chepta-6097c",
+          storageBucket: "chepta-6097c.firebasestorage.app",
+          messagingSenderId: "530068154946",
+          appId: "1:530068154946:web:83b1ec53d0aa41da92dbdb"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        // Splash screen dismissal timer[span_0](start_span)[span_0](end_span)
+        setTimeout(() => {
+            const splash = document.getElementById('splash-screen');
+            splash.style.opacity = '0';
+            setTimeout(() => {
+                splash.style.display = 'none';
+                document.getElementById('auth-box').style.display = 'block';
+            }, 500);
+        }, 1200);
+
+        let base64Pfp = "";
+
+        // AUTOMATIC COMPRESSION FIX: Downscales high-resolution photos so Firestore accepts them[span_1](start_span)[span_1](end_span)
+        document.getElementById('pfpInput').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if(file) {
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    const img = new Image();
+                    img.onload = function() {
+                        const canvas = document.createElement("canvas");
+                        const size = 180;
+                        canvas.width = size;
+                        canvas.height = size;
+                        const ctx = canvas.getContext("2d");
+                        
+                        const minDim = Math.min(img.width, img.key || img.height);
+                        ctx.drawImage(img, (img.width - minDim) / 2, (img.height - minDim) / 2, minDim, minDim, 0, 0, size, size);
+                        
+                        base64Pfp = canvas.toDataURL("image/jpeg", 0.72);
+                        
+                        const previewImg = document.getElementById('pfpImgElement');
+                        previewImg.src = base64Pfp;
+                        previewImg.style.display = 'block';
+                        document.getElementById('pfpIcon').style.display = 'none';
+                    };
+                    img.src = event.target.result;
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        window.toggleView = function(view) {
+            document.getElementById('regStatusMsg').innerText = "";
+            document.getElementById('loginStatusMsg').innerText = "";
+            if(view === 'login') {
+                document.getElementById('register-view').style.display = 'none';
+                document.getElementById('login-view').style.display = 'block';
+            } else {
+                document.getElementById('login-view').style.display = 'none';
+                document.getElementById('register-view').style.display = 'block';
+            }
+        };
+
+        window.openResetModal = function() {
+            const modal = document.getElementById('resetModal');
+            document.getElementById('resetStatusMsg').innerText = "";
+            document.getElementById('resetEmail').value = document.getElementById('loginEmail').value;
+            modal.style.display = 'flex';
+        };
+
+        window.closeResetModal = function() {
+            document.getElementById('resetModal').style.display = 'none';
+        };
+
+        document.getElementById('sendResetBtn').addEventListener('click', async () => {
+            const email = document.getElementById('resetEmail').value.trim();
+            const statusEl = document.getElementById('resetStatusMsg');
+            statusEl.className = "status-msg";
+
+            if(!email) {
+                statusEl.innerText = "Please enter your email address.";
+                statusEl.classList.add('error');
+                return;
+            }
+
+            try {
+                await sendPasswordResetEmail(auth, email);
+                statusEl.innerText = "Password reset email sent! Check your inbox.";
+                statusEl.classList.add('success');
+                setTimeout(() => { closeResetModal(); }, 2500);
+            } catch(err) {
+                statusEl.innerText = err.message.replace("Firebase: ", "");
+                statusEl.classList.add('error');
+            }
+        });
+
+        document.getElementById('registerBtn').addEventListener('click', async () => {
+            const rawUser = document.getElementById('regUsername').value.trim();
+            const username = rawUser.toLowerCase();
+            const email = document.getElementById('regEmail').value.trim();
+            const password = document.getElementById('regPassword').value;
+            const statusEl = document.getElementById('regStatusMsg');
+
+            statusEl.className = "status-msg";
+
+            if(!username || !email || !password) {
+                statusEl.innerText = "Please fill out all fields.";
+                statusEl.classList.add('error');
+                return;
+            }
+
+            try {
+                const uSnap = await getDoc(doc(db, "usernames", username));
+                if (uSnap.exists()) {
+                    statusEl.innerText = "That username is already taken.";
+                    statusEl.classList.add('error');
+                    return;
+                }
+
+                const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+                const user = userCredential.user;
+                await updateProfile(user, { displayName: username });
+
+                const userData = {
+                    uid: user.uid,
+                    username: username,
+                    displayName: username,
+                    email: email,
+                    photoB64: base64Pfp || "",
+                    avatarUrl: base64Pfp || "",
+                    profilePic: base64Pfp || "",
+                    about: "Hey there! I am using chepta®",
+                    bio: "Hey there! I am using chepta®",
+                    statusMessage: "Hey there! I am using chepta®",
+                    online: true,
+                    isOnline: true,
+                    lastSeen: serverTimestamp(),
+                    role: "user",
+                    theme: "dark",
+                    createdAt: serverTimestamp()
+                };
+
+                await setDoc(doc(db, "users", user.uid), userData);
+                await setDoc(doc(db, "usernames", username), { uid: user.uid });
+
+                localStorage.setItem("chepta:me", JSON.stringify({ uid: user.uid, username, email }));
+                if (base64Pfp) {
+                    localStorage.setItem("chepta:avatar:" + user.uid, base64Pfp);
+                }
+
+                statusEl.innerText = "Registration successful! Redirecting...";
+                statusEl.classList.add('success');
+                
+                setTimeout(() => { window.location.href = 'feed.html'; }, 1000);
+
+            } catch(err) {
+                statusEl.innerText = err.message.replace("Firebase: ", "");
+                statusEl.classList.add('error');
+            }
+        });
+
+        document.getElementById('loginBtn').addEventListener('click', async () => {
+            const email = document.getElementById('loginEmail').value.trim();
+            const password = document.getElementById('loginPassword').value;
+            const rememberMe = document.getElementById('rememberMe').checked;
+            const statusEl = document.getElementById('loginStatusMsg');
+
+            statusEl.className = "status-msg";
+
+            if(!email || !password) {
+                statusEl.innerText = "Please enter your email and password.";
+                statusEl.classList.add('error');
+                return;
+            }
+
+            try {
+                const persistenceType = rememberMe ? browserLocalPersistence : browserSessionPersistence;
+                await setPersistence(auth, persistenceType);
+
+                const userCredential = await signInWithEmailAndPassword(auth, email, password);
+                const user = userCredential.user;
+                
+                const userDoc = await getDoc(doc(db, "users", user.uid));
+                if(userDoc.exists()) {
+                    const data = userDoc.data();
+                    const photo = data.photoB64 || data.avatarUrl || data.profilePic || "";
+                    localStorage.setItem("chepta:me", JSON.stringify({
+                        uid: user.uid, 
+                        username: data.username || data.displayName, 
+                        email: user.email 
+                    }));
+                    if (photo) {
+                        localStorage.setItem("chepta:avatar:" + user.uid, photo);
+                    }
+                }
+
+                statusEl.innerText = "Login successful! Redirecting...";
+                statusEl.classList.add('success');
+
+                setTimeout(() => { window.location.href = 'feed.html'; }, 1000);
+
+            } catch(err) {
+                statusEl.innerText = err.message.replace("Firebase: ", "");
+                statusEl.classList.add('error');
+            }
+        });
+    </script>
+    <script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('./sw.js')
+        .then((reg) => console.log('Service Worker registered!', reg))
+        .catch((err) => console.log('Service Worker registration failed:', err));
+    });
+  }
+</script>
+</body>
+</html>

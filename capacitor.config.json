@@ -1,0 +1,6 @@
+{
+  "appId": "com.princedavid.chepta",
+  "appName": "chepta",
+  "webDir": ".",
+  "bundledWebRuntime": false
+}

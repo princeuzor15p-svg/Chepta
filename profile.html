@@ -1,0 +1,1045 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>chepta® — Profile</title>
+<meta name="theme-color" content="#080d17" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --bg: #080d17; --bg-2: #0e1524; --surface: #131c2e; --surface-2: #1a2438; --surface-3: #222d44;
+    --line: rgba(255,255,255,.08); --txt: #eaf0fb; --muted: #8d9ab4;
+    --brand: #12d6a4; --brand-2: #37e6ff; --danger: #ff5d6c; --warning: #ffb347;
+    --radius: 18px; --shadow: 0 24px 60px -24px rgba(0,0,0,.8);
+    --grad: linear-gradient(135deg, var(--brand), var(--brand-2));
+    --nav: 64px;
+  }
+  html[data-theme="light"] {
+    --bg: #f4f7fc; --bg-2: #ffffff; --surface: #ffffff; --surface-2: #eef2f9; --surface-3: #e4e9f3;
+    --line: rgba(9,20,40,.09); --txt: #0d1526; --muted: #5c6a85;
+    --shadow: 0 20px 50px -28px rgba(13,21,38,.35);
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { height: 100%; margin: 0; }
+  body {
+    background: var(--bg); color: var(--txt);
+    font-family: Manrope, system-ui, sans-serif; overscroll-behavior-y: none;
+  }
+  h1, h2, h3 { font-family: Sora, system-ui, sans-serif; letter-spacing: -.02em; margin: 0; }
+  a { color: var(--brand); text-decoration: none; }
+  button { font-family: Manrope, system-ui, sans-serif; }
+  .hide { display: none !important; }
+
+  /* Topbar */
+  .top {
+    position: sticky; top: 0; z-index: 20; display: flex; align-items: center; gap: 12px;
+    padding: 14px 16px; background: rgba(8,13,23,.82); backdrop-filter: blur(14px);
+    border-bottom: 1px solid var(--line);
+  }
+  html[data-theme="light"] .top { background: rgba(255,255,255,.85); }
+  .top h1 { font-size: 19px; flex: 1; }
+  .icobtn {
+    width: 40px; height: 40px; border-radius: 12px; border: 1px solid var(--line);
+    background: rgba(255,255,255,.04); color: var(--txt); display: grid; place-items: center;
+    font-size: 16px; cursor: pointer; flex: none; transition: .2s; position: relative;
+  }
+  .icobtn:active { transform: scale(.94); }
+  .icobtn .nbadge {
+    position: absolute; top: 6px; right: 6px; background: var(--danger); color: #fff;
+    min-width: 16px; height: 16px; border-radius: 99px; font: 700 9px Manrope; display: grid; place-items: center; padding: 0 3px;
+  }
+
+  /* Layout */
+  .page { max-width: 620px; margin: 0 auto; min-height: 100%; padding-bottom: calc(var(--nav) + 22px); }
+  .av { width: 44px; height: 44px; border-radius: 50%; object-fit: cover; background: var(--surface-2); flex: none; }
+  .av.lg { width: 96px; height: 96px; }
+  .avph { display: grid; place-items: center; color: var(--muted); font-weight: 700; background: var(--surface-2); }
+
+  /* Custom Toast */
+  #customToast {
+    position: fixed; bottom: calc(var(--nav) + 16px); left: 50%; transform: translateX(-50%) translateY(100px);
+    background: var(--surface-2); border: 1px solid var(--line); color: var(--txt); padding: 12px 20px;
+    border-radius: 14px; box-shadow: var(--shadow); z-index: 100; font: 600 13.5px Manrope;
+    display: flex; align-items: center; gap: 10px; transition: transform .3s cubic-bezier(.2,.8,.2,1); opacity: 0;
+  }
+  #customToast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+
+  /* Bottom Nav */
+  .nav {
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 30; height: calc(var(--nav) + env(safe-area-inset-bottom));
+    padding-bottom: env(safe-area-inset-bottom); display: flex; background: rgba(14,21,36,.93);
+    backdrop-filter: blur(16px); border-top: 1px solid var(--line);
+  }
+  html[data-theme="light"] .nav { background: rgba(255,255,255,.94); }
+  .nav a {
+    flex: 1; display: grid; place-items: center; gap: 3px; color: var(--muted); font: 600 10.5px Manrope;
+    padding-top: 9px; position: relative;
+  }
+  .nav a i { font-size: 18px; }
+  .nav a.on { color: var(--brand); }
+
+  /* Drawer */
+  .scrim { position: fixed; inset: 0; background: rgba(0,0,0,.55); opacity: 0; visibility: hidden; transition: .25s; z-index: 40; }
+  .scrim.on { opacity: 1; visibility: visible; }
+  .drawer {
+    position: fixed; top: 0; left: 0; bottom: 0; width: 290px; z-index: 50; background: var(--bg-2);
+    border-right: 1px solid var(--line); transform: translateX(-102%); transition: transform .28s cubic-bezier(.2,.8,.2,1);
+    display: flex; flex-direction: column; padding: 22px 0;
+  }
+  .drawer.on { transform: none; }
+  .drawer .dhead { padding: 0 20px 18px; border-bottom: 1px solid var(--line); display: flex; gap: 12px; align-items: center; }
+  .drawer nav { padding: 12px 10px; display: flex; flex-direction: column; gap: 2px; flex: 1; overflow: auto; }
+  .drawer nav a { display: flex; align-items: center; gap: 13px; padding: 12px 14px; border-radius: 13px; color: var(--txt); font: 600 14.5px Manrope; position: relative; }
+  .drawer nav a i { width: 20px; text-align: center; color: var(--muted); }
+  .drawer nav a.danger { color: var(--danger); }
+  .drawer nav a .nbadge {
+    margin-left: auto; background: var(--danger); color: #fff; min-width: 18px; height: 18px; border-radius: 99px; font: 700 10px Manrope; display: grid; place-items: center; padding: 0 5px;
+  }
+
+  /* Comments Sheet */
+  .modal-sheet {
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 60; background: var(--surface);
+    border-top: 1px solid var(--line); border-radius: 24px 24px 0 0; max-height: 88vh; height: 82vh;
+    display: flex; flex-direction: column; transform: translateY(102%); transition: transform .3s cubic-bezier(.2,.8,.2,1);
+    box-shadow: 0 -20px 50px rgba(0,0,0,0.6);
+  }
+  .modal-sheet.on { transform: translateY(0); }
+  .modal-header { padding: 16px 20px; border-bottom: 1px solid var(--line); display: flex; align-items: center; justify-content: space-between; }
+  .modal-header h3 { font-size: 16px; }
+  .modal-body { flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 16px; }
+  .modal-footer { padding: 12px 16px; border-top: 1px solid var(--line); display: flex; flex-direction: column; gap: 8px; background: var(--bg-2); }
+  .replying-banner { display: flex; align-items: center; justify-content: space-between; font-size: 12px; color: var(--brand); padding: 4px 8px; background: var(--surface); border-radius: 8px; }
+  
+  .comment-input-row { display: flex; gap: 8px; align-items: center; }
+  .comment-input { flex: 1; padding: 10px 14px; background: var(--surface-2); border: 1px solid var(--line); border-radius: 12px; color: var(--txt); font: 14px Manrope; outline: none; }
+  .comment-media-btn { background: none; border: 1px solid var(--line); border-radius: 10px; width: 38px; height: 38px; display: grid; place-items: center; color: var(--muted); cursor: pointer; flex: none; }
+  .comment-media-btn:hover { color: var(--brand); border-color: var(--brand); }
+  
+  .comment-media-preview { position: relative; display: inline-block; margin-bottom: 6px; }
+  .comment-media-preview img { width: 50px; height: 50px; object-fit: cover; border-radius: 8px; border: 1px solid var(--line); display: block; }
+  .comment-media-preview button { position: absolute; top: -5px; right: -5px; background: var(--danger); color: #fff; border: none; border-radius: 50%; width: 18px; height: 18px; font-size: 10px; display: grid; place-items: center; cursor: pointer; }
+
+  .comment-row { display: flex; gap: 10px; align-items: flex-start; }
+  .comment-bubble { background: var(--surface-2); padding: 10px 14px; border-radius: 14px; flex: 1; font-size: 13.5px; position: relative; user-select: none; -webkit-user-select: none; }
+  .comment-author { font-weight: 700; font-size: 13px; margin-bottom: 2px; color: var(--txt); display: inline-block; }
+  .comment-author:hover { color: var(--brand); }
+  .comment-footer-actions { display: flex; align-items: center; gap: 14px; margin-top: 6px; }
+  .comment-like-btn, .comment-reply-btn { background: none; border: none; padding: 0; color: var(--muted); font: 600 12px Manrope; cursor: pointer; display: flex; align-items: center; gap: 4px; transition: .2s; }
+  .comment-like-btn.liked { color: var(--danger); }
+  .comment-like-btn.liked i { font-weight: 900; }
+  .comment-reply-btn:hover { color: var(--brand); }
+  
+  .comment-media-thumb { width: 100%; max-height: 140px; object-fit: cover; border-radius: 10px; margin-top: 6px; display: block; }
+  
+  .replies-container {
+    margin-top: 10px; display: flex; flex-direction: column; gap: 10px; border-left: 2px solid var(--line); padding-left: 10px;
+  }
+  .reply-item { display: flex; gap: 8px; align-items: flex-start; }
+  .reply-bubble { background: var(--surface); padding: 8px 10px; border-radius: 10px; flex: 1; user-select: none; -webkit-user-select: none; }
+  .view-more-replies {
+    background: none; border: none; padding: 0; color: var(--brand); font: 600 12px Manrope; cursor: pointer; margin-top: 4px; display: inline-flex; align-items: center; gap: 4px;
+  }
+
+  /* Action Sheet Styles for Long-Press */
+  .action-sheet-overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 100;
+    opacity: 0; visibility: hidden; transition: .25s ease;
+  }
+  .action-sheet-overlay.on { opacity: 1; visibility: visible; }
+  .action-sheet {
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 101;
+    background: var(--surface); border-top: 1px solid var(--line);
+    border-radius: 24px 24px 0 0; padding: 20px 16px env(safe-area-inset-bottom, 20px);
+    transform: translateY(102%); transition: transform .3s cubic-bezier(.2, .8, .2, 1);
+    box-shadow: 0 -20px 50px rgba(0,0,0,0.6); display: flex; flex-direction: column; gap: 8px;
+  }
+  .action-sheet.on { transform: translateY(0); }
+  .action-sheet-btn {
+    width: 100%; padding: 14px 16px; background: var(--surface-2); border: 1px solid var(--line);
+    border-radius: 14px; color: var(--txt); font: 600 14px Manrope; cursor: pointer;
+    display: flex; align-items: center; gap: 12px; transition: .2s; text-align: left;
+  }
+  .action-sheet-btn:active { transform: scale(.98); }
+  .action-sheet-btn.danger { color: var(--danger); border-color: rgba(255,93,108,.2); }
+  .action-sheet-btn.danger i { color: var(--danger); }
+  .action-sheet-btn i { font-size: 16px; color: var(--muted); width: 20px; text-align: center; }
+
+  /* Profile Card Styles */
+  .profile-container { padding: 16px; max-width: 600px; margin: 0 auto; }
+  .profile-card {
+    background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 24px; text-align: center; margin-bottom: 16px; box-shadow: var(--shadow); position: relative;
+  }
+  .edit-profile-icon {
+    position: absolute; top: 16px; right: 16px; width: 36px; height: 36px; border-radius: 10px; background: rgba(255,255,255,.05); border: 1px solid var(--line); display: grid; place-items: center; color: var(--txt); cursor: pointer; transition: .2s;
+  }
+  .edit-profile-icon:hover { background: var(--brand); color: #04231c; border-color: transparent; }
+  .profile-name { font-family: Sora, sans-serif; font-size: 20px; font-weight: 700; color: var(--txt); margin: 12px 0 4px; display: flex; align-items: center; justify-content: center; gap: 6px; }
+  .profile-email { font-size: 13px; color: var(--muted); margin-bottom: 12px; }
+  .profile-bio { font-size: 14px; line-height: 1.5; color: var(--txt); margin-bottom: 20px; padding: 0 10px; }
+  
+  .profile-action-row { display: flex; gap: 10px; }
+  .btn { border: 0; border-radius: 14px; padding: 13px; font: 700 14.5px Manrope; cursor: pointer; width: 100%; background: var(--grad); color: #04231c; }
+  .btn.ghost { background: transparent; color: var(--txt); border: 1px solid var(--line); }
+  .btn:active { transform: scale(.99); }
+
+  /* Feed Posts Styles matching Feed */
+  .section-title { font-family: Sora, sans-serif; font-size: 16px; font-weight: 700; margin: 24px 0 12px; color: var(--txt); }
+  .post-card {
+    background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 16px; margin-bottom: 14px; box-shadow: var(--shadow); position: relative;
+  }
+  .post-header { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
+  .post-author-name { font-weight: 700; font-size: 14.5px; display: flex; align-items: center; gap: 5px; color: var(--txt); }
+  .post-author-name:hover { color: var(--brand); }
+  .post-time { font-size: 11.5px; color: var(--muted); }
+  
+  .post-options-btn { background: none; border: none; color: var(--muted); cursor: pointer; font-size: 16px; padding: 4px; margin-left: auto; border-radius: 8px; }
+  .post-options-btn:hover { color: var(--txt); background: rgba(255,255,255,.04); }
+  
+  .post-menu-dropdown {
+    position: absolute; top: 50px; right: 16px; background: var(--surface-2); border: 1px solid var(--line);
+    border-radius: 12px; box-shadow: var(--shadow); display: none; z-index: 10; overflow: hidden; min-width: 130px;
+  }
+  .post-menu-dropdown.open { display: block; }
+  .post-menu-item {
+    background: none; border: none; width: 100%; padding: 10px 14px; text-align: left; color: var(--txt);
+    font: 600 13px Manrope; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: .2s;
+  }
+  .post-menu-item:hover { background: rgba(255,255,255,.06); }
+  .post-menu-item.danger { color: var(--danger); }
+
+  .post-text { font-size: 14.5px; line-height: 1.5; color: var(--txt); margin-bottom: 12px; word-break: break-word; }
+  .post-media { width: 100%; border-radius: 12px; max-height: 380px; object-fit: cover; margin-top: 8px; }
+
+  .post-footer {
+    display: flex; justify-content: space-between; align-items: center; margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--line); gap: 4px;
+  }
+  .post-action-btn {
+    background: none; border: none; color: var(--muted); font: 600 12.5px Manrope; cursor: pointer;
+    display: flex; align-items: center; gap: 4px; padding: 6px 8px; border-radius: 8px; transition: .2s; flex-shrink: 1; overflow: hidden;
+  }
+  .post-action-btn:hover { background: rgba(255,255,255,.04); color: var(--txt); }
+  .post-action-btn.liked { color: var(--danger); }
+  .post-action-btn.liked i { font-weight: 900; }
+
+  .verified-badge { color: var(--brand); font-size: 13px; }
+  .empty { text-align: center; color: var(--muted); padding: 40px 20px; }
+  .skel { height: 80px; margin: 10px 0; border-radius: 14px; background: linear-gradient(90deg,var(--surface),var(--surface-2),var(--surface)); background-size: 200% 100%; animation: sh 1.2s infinite; }
+  @keyframes sh { to { background-position: -200% 0; } }
+
+  .share-sheet { display: flex; gap: 16px; padding: 16px 0; justify-content: center; }
+  .share-option { display: flex; flex-direction: column; align-items: center; gap: 6px; cursor: pointer; }
+  .share-option i { width: 48px; height: 48px; border-radius: 50%; display: grid; place-items: center; font-size: 20px; background: var(--surface-2); color: var(--txt); }
+  .share-option span { font-size: 11px; color: var(--muted); }
+</style>
+</head>
+<body>
+
+<div class="scrim" id="scrim"></div>
+<div id="customToast"></div>
+
+<!-- Long-Press Action Sheet Modal -->
+<div class="action-sheet-overlay" id="actionSheetOverlay"></div>
+<div class="action-sheet" id="actionSheetModal">
+  <div style="width: 40px; height: 4px; background: var(--line); border-radius: 99px; margin: 0 auto 8px;"></div>
+  <div id="actionSheetContent"></div>
+</div>
+
+<!-- Side Drawer -->
+<aside class="drawer" id="drawer">
+  <div class="dhead" id="drawerUser"></div>
+  <nav>
+    <a href="dashboard.html"><i class="fa-solid fa-comments"></i> Chats</a>
+    <a href="feed.html"><i class="fa-solid fa-newspaper"></i> Feed</a>
+    <a href="requests.html"><i class="fa-solid fa-user-plus"></i> Requests<span class="nbadge hide" id="drawerReqBadge">0</span></a>
+    <a href="people.html"><i class="fa-solid fa-magnifying-glass"></i> Find people</a>
+    <a href="profile.html" class="on"><i class="fa-solid fa-user"></i> My profile</a>
+    <a href="settings.html"><i class="fa-solid fa-gear"></i> Settings</a>
+    <a href="admin.html" id="adminLink" class="hide"><i class="fa-solid fa-shield-halved"></i> Admin panel</a>
+    <a href="terms.html"><i class="fa-solid fa-file-lines"></i> Terms &amp; Privacy</a>
+    <a href="#" id="logoutBtn" class="danger"><i class="fa-solid fa-arrow-right-from-bracket"></i> Log out</a>
+  </nav>
+</aside>
+
+<!-- Comments Modal Sheet -->
+<div class="modal-sheet" id="commentsModal">
+  <div class="modal-header">
+    <h3 id="commentsModalTitle">Comments</h3>
+    <button class="icobtn" id="closeCommentsBtn"><i class="fa-solid fa-xmark"></i></button>
+  </div>
+  <div class="modal-body" id="commentsListBox">
+    <div class="skel"></div>
+  </div>
+  <div class="modal-footer">
+    <div id="replyingBanner" class="replying-banner hide">
+      <span id="replyingToText">Replying to user...</span>
+      <button id="cancelReplyBtn" style="background:none;border:none;color:var(--danger);cursor:pointer;font-weight:700;"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div id="commentMediaPreviewArea" class="hide comment-media-preview">
+      <img id="commentPreviewImg" src="" alt="Media" />
+      <button id="removeCommentMediaBtn"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="comment-input-row">
+      <button class="comment-media-btn" id="pickCommentImageBtn" title="Attach image"><i class="fa-regular fa-image"></i></button>
+      <input type="file" id="commentMediaFileInput" accept="image/*" class="hide" />
+      <input type="text" id="commentInputText" class="comment-input" placeholder="Write a comment..." />
+      <button class="btn" id="sendCommentBtn" style="width:auto;padding:10px 20px;">Post</button>
+    </div>
+  </div>
+</div>
+
+<!-- Share Modal Sheet -->
+<div class="modal-sheet" id="shareModal">
+  <div class="modal-header">
+    <h3>Share</h3>
+    <button class="icobtn" id="closeShareBtn"><i class="fa-solid fa-xmark"></i></button>
+  </div>
+  <div class="modal-body" id="shareBody">
+    <div class="share-sheet">
+      <div class="share-option" id="shareCopyLink">
+        <i class="fa-solid fa-link" style="color:var(--brand-2);"></i>
+        <span>Copy Link</span>
+      </div>
+      <div class="share-option" id="shareWhatsApp">
+        <i class="fa-brands fa-whatsapp" style="color:#25D366;"></i>
+        <span>WhatsApp</span>
+      </div>
+      <div class="share-option" id="shareTwitter">
+        <i class="fa-brands fa-x-twitter" style="color:#000;"></i>
+        <span>Twitter</span>
+      </div>
+      <div class="share-option" id="shareMore">
+        <i class="fa-solid fa-share-nodes" style="color:var(--brand);"></i>
+        <span>More</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="page">
+  <header class="top">
+    <button class="icobtn" id="menuBtn" aria-label="Open menu"><i class="fa-solid fa-bars"></i></button>
+    <h1 id="topBarTitle">Profile</h1>
+  </header>
+
+  <div class="profile-container">
+    <!-- Profile Card -->
+    <div class="profile-card" id="profileCardContent">
+      <div class="skel"></div>
+    </div>
+
+    <div class="section-title">Shared Posts</div>
+    <div id="userProfilePostsList">
+      <div class="skel"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Bottom Navigation Bar -->
+<nav class="nav">
+  <a href="dashboard.html"><i class="fa-solid fa-comments"></i>Chats</a>
+  <a href="feed.html"><i class="fa-solid fa-newspaper"></i>Feed</a>
+  <a href="people.html"><i class="fa-solid fa-magnifying-glass"></i>People</a>
+  <a href="requests.html"><i class="fa-solid fa-user-plus"></i>Requests<span class="nbadge hide" id="reqBadge">0</span></a>
+  <a href="profile.html" class="on"><i class="fa-solid fa-user"></i>Profile</a>
+</nav>
+
+<script type="module">
+import {
+  db, requireAuth, mountShell, isAdmin, $, esc, timeAgo, toast, dmId,
+  collection, query, where, getDocs, doc, getDoc, addDoc, deleteDoc, updateDoc, arrayUnion, arrayRemove, onSnapshot, serverTimestamp
+} from "./chepta.js";
+
+let ME = null, PROF = null;
+let activePostId = null;
+let replyingToCommentId = null;
+let replyingToUser = null;
+let sharePostId = null;
+let attachedCommentImage = '';
+let expandedReplies = new Set();
+let longPressTimer = null;
+let activeTargetData = null;
+
+const urlParams = new URLSearchParams(window.location.search);
+const targetUid = urlParams.get('uid');
+
+requireAuth(async (user, profile) => {
+  ME = user; PROF = profile;
+  const isMyProfile = !targetUid || targetUid === ME.uid;
+  
+  mountShell('profile', profile);
+  if (isAdmin(profile)) $('adminLink').classList.remove('hide');
+
+  onSnapshot(query(collection(db, 'requests'), where('to', '==', user.uid), where('status', '==', 'pending')), (s) => {
+    const b = $('reqBadge');
+    const dbBadge = $('drawerReqBadge');
+    if (s.size) {
+      b.textContent = s.size; b.classList.remove('hide');
+      if (dbBadge) { dbBadge.textContent = s.size; dbBadge.classList.remove('hide'); }
+    } else {
+      b.classList.add('hide');
+      if (dbBadge) dbBadge.classList.add('hide');
+    }
+  }, () => {});
+
+  const profileUid = isMyProfile ? ME.uid : targetUid;
+  loadProfileData(profileUid, isMyProfile);
+  loadUserPostsLive(profileUid);
+});
+
+async function loadProfileData(uid, isMyProfile) {
+  const card = $('profileCardContent');
+  try {
+    let userData = PROF;
+    if (!isMyProfile) {
+      const snap = await getDoc(doc(db, 'users', uid));
+      userData = snap.exists() ? snap.data() : { username: "Community Member" };
+    }
+
+    const name = userData.username || userData.displayName || "User";
+    const email = isMyProfile ? (userData.email || "") : "";
+    const bio = userData.bio || "Community member on chepta®.";
+    const photo = userData.photoB64 || userData.avatarUrl || userData.profilePic || "";
+    const isVerified = !!userData.isVerified;
+    const verifiedBadge = isVerified ? `<span class="verified-badge" title="Verified"><i class="fa-solid fa-circle-check"></i></span>` : '';
+
+    $('topBarTitle').textContent = isMyProfile ? "My Profile" : `${name}'s Profile`;
+
+    const avatarHTML = photo ? `<img src="${photo}" class="av lg" style="margin:0 auto; object-fit:cover;" />` : `<div class="av lg avph" style="margin:0 auto; font-size:32px;">${name[0].toUpperCase()}</div>`;
+
+    let actionButtonHTML = '';
+    if (isMyProfile) {
+      actionButtonHTML = `<a href="profile-edit.html" class="edit-profile-icon" title="Edit Profile"><i class="fa-solid fa-pen"></i></a>`;
+    } else {
+      const q1 = query(collection(db, 'requests'), where('from', '==', ME.uid), where('to', '==', uid));
+      const q2 = query(collection(db, 'requests'), where('from', '==', uid), where('to', '==', ME.uid));
+      const [s1, s2] = await Promise.all([getDocs(q1), getDocs(q2)]);
+
+      const threadId = dmId(ME.uid, uid);
+      const chatSnap = await getDoc(doc(db, 'chats', threadId));
+
+      if (chatSnap.exists()) {
+        actionButtonHTML = `<button class="btn" id="profileMessageBtn"><i class="fa-solid fa-comment"></i> Message</button>`;
+      } else if (!s1.empty) {
+        actionButtonHTML = `<button class="btn ghost" disabled>Request Sent</button>`;
+      } else if (!s2.empty) {
+        actionButtonHTML = `<button class="btn" id="profileRespondBtn">Respond to Request</button>`;
+      } else {
+        actionButtonHTML = `<button class="btn" id="profileSendReqBtn"><i class="fa-solid fa-user-plus"></i> Send Request</button>`;
+      }
+    }
+
+    card.innerHTML = `
+      ${actionButtonHTML.includes('edit-profile-icon') ? actionButtonHTML : ''}
+      ${avatarHTML}
+      <div class="profile-name">${esc(name)}${verifiedBadge}</div>
+      ${email ? `<div class="profile-email">${esc(email)}</div>` : ''}
+      <div class="profile-bio">${esc(bio)}</div>
+      ${!isMyProfile ? `<div class="profile-action-row">${actionButtonHTML}</div>` : ''}
+    `;
+
+    if ($('profileMessageBtn')) {
+      $('profileMessageBtn').onclick = () => location.href = `chat.html?c=${dmId(ME.uid, uid)}`;
+    }
+    if ($('profileRespondBtn')) {
+      $('profileRespondBtn').onclick = () => location.href = 'requests.html';
+    }
+    if ($('profileSendReqBtn')) {
+      $('profileSendReqBtn').onclick = async () => {
+        const btn = $('profileSendReqBtn');
+        btn.disabled = true; btn.textContent = "Sending...";
+        try {
+          await addDoc(collection(db, 'requests'), {
+            from: ME.uid,
+            to: uid,
+            status: 'pending',
+            createdAt: serverTimestamp()
+          });
+          toast("Connection request sent!");
+          btn.textContent = "Request Sent";
+        } catch (err) {
+          toast("Failed to send request");
+          btn.disabled = false; btn.textContent = "Send Request";
+        }
+      };
+    }
+
+  } catch (err) {
+    card.innerHTML = `<div class="empty">Failed to load profile details.</div>`;
+  }
+}
+
+// Action Sheet Logic for Long Press
+function showActionSheet(isOwner, type, data) {
+  activeTargetData = { type, ...data };
+  const content = $('actionSheetContent');
+  content.innerHTML = '';
+
+  const actionBtn = document.createElement('button');
+  actionBtn.className = isOwner ? 'action-sheet-btn danger' : 'action-sheet-btn';
+
+  if (isOwner) {
+    actionBtn.innerHTML = `<i class="fa-solid fa-trash"></i> Delete ${type === 'comment' ? 'Comment' : 'Reply'}`;
+    actionBtn.onclick = async () => {
+      closeActionSheet();
+      if (!confirm(`Are you sure you want to delete this ${type}?`)) return;
+
+      try {
+        if (type === 'comment') {
+          await deleteDoc(doc(db, 'posts', activePostId, 'comments', data.commentId));
+          toast('Comment deleted');
+        } else if (type === 'reply') {
+          const commentRef = doc(db, 'posts', activePostId, 'comments', data.commentId);
+          const snap = await getDoc(commentRef);
+          if (snap.exists()) {
+            const replies = snap.data().replies || [];
+            const updatedReplies = replies.filter(r => r.id !== data.replyId);
+            await updateDoc(commentRef, { replies: updatedReplies });
+            toast('Reply deleted');
+          }
+        }
+      } catch (err) {
+        toast('Failed to delete');
+      }
+    };
+  } else {
+    actionBtn.innerHTML = `<i class="fa-solid fa-flag"></i> Report ${type === 'comment' ? 'Comment' : 'Reply'}`;
+    actionBtn.onclick = async () => {
+      closeActionSheet();
+      const reason = prompt("Please provide a reason for reporting:");
+      if (!reason) return;
+
+      try {
+        await addDoc(collection(db, 'reports'), {
+          targetType: type,
+          postId: activePostId,
+          commentId: data.commentId,
+          replyId: data.replyId || null,
+          reportedUserUid: data.ownerUid,
+          reporterUid: ME.uid,
+          reason: reason,
+          createdAt: serverTimestamp()
+        });
+        toast('Report submitted to administrators.');
+      } catch (err) {
+        toast('Failed to submit report.');
+      }
+    };
+  }
+
+  content.appendChild(actionBtn);
+  $('actionSheetOverlay').classList.add('on');
+  $('actionSheetModal').classList.add('on');
+}
+
+function closeActionSheet() {
+  $('actionSheetOverlay').classList.remove('on');
+  $('actionSheetModal').classList.remove('on');
+  activeTargetData = null;
+}
+
+$('actionSheetOverlay').onclick = closeActionSheet;
+
+function attachLongPressListener(element, isOwner, type, data) {
+  const startPress = (e) => {
+    if (e.target.closest('button') || e.target.closest('a')) return;
+    longPressTimer = setTimeout(() => {
+      showActionSheet(isOwner, type, data);
+      if (navigator.vibrate) navigator.vibrate(50);
+    }, 600);
+  };
+
+  const cancelPress = () => {
+    if (longPressTimer) {
+      clearTimeout(longPressTimer);
+      longPressTimer = null;
+    }
+  };
+
+  element.ontouchstart = startPress;
+  element.ontouchend = cancelPress;
+  element.ontouchmove = cancelPress;
+  element.onmousedown = startPress;
+  element.onmouseup = cancelPress;
+  element.onmouseleave = cancelPress;
+}
+
+// Live User Posts Feed
+function loadUserPostsLive(uid) {
+  const list = $('userProfilePostsList');
+  
+  list.onclick = async (e) => {
+    if (!e.target.closest('.post-options-btn') && !e.target.closest('.post-menu-dropdown')) {
+      document.querySelectorAll('.post-menu-dropdown').forEach(m => m.classList.remove('open'));
+    }
+
+    const likeBtn = e.target.closest('.like-btn');
+    if (likeBtn) {
+      const postId = likeBtn.dataset.id;
+      const postOwnerUid = likeBtn.dataset.owner;
+      const postRef = doc(db, 'posts', postId);
+      const isLiked = likeBtn.classList.contains('liked');
+
+      try {
+        if (isLiked) {
+          await updateDoc(postRef, { likes: arrayRemove(ME.uid) });
+        } else {
+          await updateDoc(postRef, { likes: arrayUnion(ME.uid) });
+          if (postOwnerUid && postOwnerUid !== ME.uid) {
+            await addDoc(collection(db, 'users', postOwnerUid, 'notifications'), {
+              type: 'like',
+              text: `@${PROF?.username || 'Someone'} liked your post.`,
+              read: false,
+              createdAt: serverTimestamp()
+            });
+          }
+        }
+      } catch (err) {}
+      return;
+    }
+
+    const shareBtn = e.target.closest('.share-btn');
+    if (shareBtn) {
+      sharePostId = shareBtn.dataset.id;
+      $('shareModal').classList.add('on');
+      $('scrim').classList.add('on');
+      return;
+    }
+
+    const commentBtn = e.target.closest('.comment-btn');
+    if (commentBtn) {
+      activePostId = commentBtn.dataset.id;
+      openCommentsModal(activePostId);
+    }
+
+    const optionsBtn = e.target.closest('.post-options-btn');
+    if (optionsBtn) {
+      const postId = optionsBtn.dataset.id;
+      const menu = $(`menu-${postId}`);
+      document.querySelectorAll('.post-menu-dropdown').forEach(m => {
+        if (m !== menu) m.classList.remove('open');
+      });
+      if (menu) menu.classList.toggle('open');
+      return;
+    }
+
+    const deletePostBtn = e.target.closest('.delete-post-item');
+    if (deletePostBtn) {
+      const postId = deletePostBtn.dataset.id;
+      if (confirm("Are you sure you want to delete this post?")) {
+        try {
+          await deleteDoc(doc(db, 'posts', postId));
+          toast("Post deleted successfully");
+        } catch (err) {
+          toast("Failed to delete post");
+        }
+      }
+      return;
+    }
+
+    const reportPostBtn = e.target.closest('.report-post-item');
+    if (reportPostBtn) {
+      const postId = reportPostBtn.dataset.id;
+      const reason = prompt("Reason for reporting this post:");
+      if (!reason) return;
+
+      try {
+        await addDoc(collection(db, 'reports'), {
+          postId: postId,
+          reporterUid: ME.uid,
+          reason: reason,
+          createdAt: serverTimestamp()
+        });
+        toast("Post reported to administrators.");
+      } catch (err) {}
+      return;
+    }
+  };
+
+  onSnapshot(query(collection(db, 'posts'), where('uid', '==', uid)), (snapshot) => {
+    if (snapshot.empty) {
+      list.innerHTML = `<div class="empty"><i class="fa-regular fa-newspaper"></i> No posts shared yet.</div>`;
+      return;
+    }
+
+    const posts = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+    posts.sort((a, b) => {
+      const timeA = a.createdAt?.toMillis ? a.createdAt.toMillis() : (a.createdAt || 0);
+      const timeB = b.createdAt?.toMillis ? b.createdAt.toMillis() : (b.createdAt || 0);
+      return timeB - timeA;
+    });
+
+    list.innerHTML = posts.map(p => {
+      const authorPhoto = p.authorPhoto ? `<img src="${p.authorPhoto}" class="av" />` : `<div class="av avph">${(p.authorName || 'U')[0].toUpperCase()}</div>`;
+      const verifiedBadge = p.isVerified ? `<span class="verified-badge" title="Verified"><i class="fa-solid fa-circle-check"></i></span>` : '';
+      const mediaHtml = p.mediaUrl ? `<img src="${p.mediaUrl}" class="post-media" alt="Post image" />` : '';
+      
+      const likes = p.likes || [];
+      const hasLiked = ME && likes.includes(ME.uid);
+      const likeClass = hasLiked ? 'liked' : '';
+      const likeIcon = hasLiked ? 'fa-solid fa-heart' : 'fa-regular fa-heart';
+
+      const isMyPost = ME && p.uid === ME.uid;
+      const menuOptionsHtml = isMyPost ? `
+        <button class="post-menu-item delete-post-item danger" data-id="${p.id}"><i class="fa-solid fa-trash"></i> Delete</button>
+      ` : `
+        <button class="post-menu-item report-post-item" data-id="${p.id}"><i class="fa-solid fa-flag"></i> Report</button>
+      `;
+
+      return `
+        <div class="post-card" id="post-card-${p.id}">
+          <div class="post-header">
+            <div style="flex:none;">${authorPhoto}</div>
+            <div style="flex:1;">
+              <div class="post-author-name">${esc(p.authorName || 'User')}${verifiedBadge}</div>
+              <div class="post-time">${timeAgo(p.createdAt)}</div>
+            </div>
+            <button class="post-options-btn" data-id="${p.id}"><i class="fa-solid fa-ellipsis-vertical"></i></button>
+            <div class="post-menu-dropdown" id="menu-${p.id}">
+              ${menuOptionsHtml}
+            </div>
+          </div>
+          ${p.text ? `<div class="post-text">${esc(p.text)}</div>` : ''}
+          ${mediaHtml}
+          <div class="post-footer">
+            <button class="post-action-btn like-btn ${likeClass}" data-id="${p.id}" data-owner="${p.uid}">
+              <i class="${likeIcon}"></i> <span>${likes.length}</span>
+            </button>
+            <button class="post-action-btn comment-btn" data-id="${p.id}">
+              <i class="fa-regular fa-comment"></i> <span>Comments</span>
+            </button>
+            <button class="post-action-btn share-btn" data-id="${p.id}">
+              <i class="fa-solid fa-share"></i> <span>Share</span>
+            </button>
+          </div>
+        </div>
+      `;
+    }).join('');
+  }, () => {
+    list.innerHTML = `<div class="empty">Failed to load user posts.</div>`;
+  });
+}
+
+// Comments Modal & Interactions
+function openCommentsModal(postId) {
+  $('commentsModal').classList.add('on');
+  $('scrim').classList.add('on');
+  const box = $('commentsListBox');
+  box.innerHTML = `<div class="skel"></div>`;
+  resetReplyState();
+
+  box.onclick = async (e) => {
+    const commentLikeBtn = e.target.closest('.comment-like-btn');
+    if (commentLikeBtn && !commentLikeBtn.classList.contains('reply-like-btn')) {
+      const commentId = commentLikeBtn.dataset.commentid;
+      const commentRef = doc(db, 'posts', postId, 'comments', commentId);
+      const isLiked = commentLikeBtn.classList.contains('liked');
+      try {
+        if (isLiked) {
+          await updateDoc(commentRef, { likes: arrayRemove(ME.uid) });
+        } else {
+          await updateDoc(commentRef, { likes: arrayUnion(ME.uid) });
+        }
+      } catch (err) {}
+      return;
+    }
+
+    const replyLikeBtn = e.target.closest('.reply-like-btn');
+    if (replyLikeBtn) {
+      const commentId = replyLikeBtn.dataset.commentid;
+      const replyId = replyLikeBtn.dataset.replyid;
+      const commentRef = doc(db, 'posts', postId, 'comments', commentId);
+      
+      try {
+        const snap = await getDoc(commentRef);
+        if (snap.exists()) {
+          const data = snap.data();
+          const replies = data.replies || [];
+          const updated = replies.map(r => {
+            if (r.id === replyId) {
+              const rLikes = r.likes || [];
+              const alreadyLiked = rLikes.includes(ME.uid);
+              return {
+                ...r,
+                likes: alreadyLiked ? rLikes.filter(id => id !== ME.uid) : [...rLikes, ME.uid]
+              };
+            }
+            return r;
+          });
+          await updateDoc(commentRef, { replies: updated });
+        }
+      } catch (err) {}
+      return;
+    }
+
+    const replyBtn = e.target.closest('.comment-reply-btn');
+    if (replyBtn) {
+      replyingToCommentId = replyBtn.dataset.commentid;
+      replyingToUser = replyBtn.dataset.authorname;
+      $('replyingBanner').classList.remove('hide');
+      $('replyingToText').textContent = `Replying to @${replyingToUser}`;
+      $('commentInputText').focus();
+      return;
+    }
+
+    const viewMoreBtn = e.target.closest('.view-more-replies');
+    if (viewMoreBtn) {
+      const commentId = viewMoreBtn.dataset.commentid;
+      if (expandedReplies.has(commentId)) {
+        expandedReplies.delete(commentId);
+      } else {
+        expandedReplies.add(commentId);
+      }
+      const snap = await getDocs(collection(db, 'posts', postId, 'comments'));
+      renderCommentsList(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+      return;
+    }
+  };
+
+  function renderCommentsList(comments) {
+    if (comments.length === 0) {
+      box.innerHTML = `<div class="empty">No comments yet. Be the first to comment!</div>`;
+      $('commentsModalTitle').textContent = `Comments (0)`;
+      return;
+    }
+
+    comments.sort((a, b) => (a.createdAt?.toMillis?.() || 0) - (b.createdAt?.toMillis?.() || 0));
+    $('commentsModalTitle').textContent = `Comments (${comments.length})`;
+
+    box.innerHTML = comments.map(c => {
+      const cLikes = c.likes || [];
+      const hasLikedComment = ME && cLikes.includes(ME.uid);
+      const cLikeClass = hasLikedComment ? 'liked' : '';
+      const cLikeIcon = hasLikedComment ? 'fa-solid fa-heart' : 'fa-regular fa-heart';
+
+      const avatarHtml = c.authorPhoto 
+        ? `<img src="${c.authorPhoto}" style="width:32px;height:32px;border-radius:50%;object-fit:cover;" />` 
+        : `<div class="av avph" style="width:32px;height:32px;font-size:12px;">${(c.authorName || 'U')[0].toUpperCase()}</div>`;
+
+      const commentMediaHtml = c.mediaUrl ? `<img src="${c.mediaUrl}" class="comment-media-thumb" alt="Attachment" />` : '';
+      const replies = c.replies || [];
+      
+      let repliesHtml = '';
+      if (replies.length > 0) {
+        const isExpanded = expandedReplies.has(c.id);
+        const visibleReplies = isExpanded ? replies : replies.slice(0, 1);
+        
+        const renderedList = visibleReplies.map(r => {
+          const rLikes = r.likes || [];
+          const hasLikedReply = ME && rLikes.includes(ME.uid);
+          const rLikeClass = hasLikedReply ? 'liked' : '';
+          const rLikeIcon = hasLikedReply ? 'fa-solid fa-heart' : 'fa-regular fa-heart';
+          const rAvatar = r.authorPhoto 
+            ? `<img src="${r.authorPhoto}" style="width:24px;height:24px;border-radius:50%;object-fit:cover;" />`
+            : `<div class="av avph" style="width:24px;height:24px;font-size:10px;">${(r.authorName || 'U')[0].toUpperCase()}</div>`;
+
+          return `
+            <div class="reply-item">
+              <div style="flex:none;">${rAvatar}</div>
+              <div class="reply-bubble reply-item-wrapper" data-uid="${r.uid}" data-commentid="${c.id}" data-replyid="${r.id}">
+                <div style="font-weight:700;font-size:12px;color:var(--txt);margin-bottom:2px;">${esc(r.authorName)}</div>
+                <div style="font-size:12.5px;color:var(--txt);word-break:break-word;">${esc(r.text)}</div>
+                <div style="display:flex;gap:12px;margin-top:4px;">
+                  <button class="comment-like-btn reply-like-btn ${rLikeClass}" data-commentid="${c.id}" data-replyid="${r.id}" style="font-size:11px;">
+                    <i class="${rLikeIcon}"></i> <span>${rLikes.length}</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          `;
+        }).join('');
+
+        const toggleText = isExpanded ? 'Hide replies' : `View ${replies.length} more ${replies.length === 1 ? 'reply' : 'replies'}`;
+        
+        repliesHtml = `
+          <div class="replies-container">
+            ${renderedList}
+            ${replies.length > 1 ? `<button class="view-more-replies" data-commentid="${c.id}">${toggleText}</button>` : ''}
+          </div>
+        `;
+      }
+
+      return `
+        <div class="comment-row">
+          <div style="flex:none;">${avatarHtml}</div>
+          <div class="comment-bubble comment-bubble-wrapper" data-uid="${c.uid}" data-commentid="${c.id}">
+            <div class="comment-author">${esc(c.authorName || 'User')}</div>
+            <div style="word-break:break-word;">${esc(c.text)}</div>
+            ${commentMediaHtml}
+            <div class="comment-footer-actions">
+              <button class="comment-like-btn ${cLikeClass}" data-commentid="${c.id}">
+                <i class="${cLikeIcon}"></i> <span>${cLikes.length}</span>
+              </button>
+              <button class="comment-reply-btn" data-commentid="${c.id}" data-authorname="${esc(c.authorName || 'User')}">
+                <i class="fa-solid fa-reply"></i> Reply
+              </button>
+            </div>
+            ${repliesHtml}
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    box.querySelectorAll('.comment-bubble-wrapper').forEach(el => {
+      const isOwner = el.dataset.uid === ME?.uid;
+      const commentId = el.dataset.commentid;
+      attachLongPressListener(el, isOwner, 'comment', { commentId, ownerUid: el.dataset.uid });
+    });
+
+    box.querySelectorAll('.reply-item-wrapper').forEach(el => {
+      const isOwner = el.dataset.uid === ME?.uid;
+      const commentId = el.dataset.commentid;
+      const replyId = el.dataset.replyid;
+      attachLongPressListener(el, isOwner, 'reply', { commentId, replyId, ownerUid: el.dataset.uid });
+    });
+  }
+
+  onSnapshot(collection(db, 'posts', postId, 'comments'), (snap) => {
+    const comments = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    renderCommentsList(comments);
+  });
+}
+
+function resetReplyState() {
+  replyingToCommentId = null;
+  replyingToUser = null;
+  attachedCommentImage = '';
+  $('replyingBanner').classList.add('hide');
+  $('replyingToText').textContent = '';
+  $('commentMediaPreviewArea').classList.add('hide');
+  $('commentPreviewImg').src = '';
+  $('commentMediaFileInput').value = '';
+}
+
+$('cancelReplyBtn').onclick = resetReplyState;
+
+$('closeCommentsBtn').onclick = () => {
+  $('commentsModal').classList.remove('on');
+  $('scrim').classList.remove('on');
+  activePostId = null;
+  expandedReplies.clear();
+  resetReplyState();
+};
+
+$('pickCommentImageBtn').onclick = () => $('commentMediaFileInput').click();
+
+$('commentMediaFileInput').onchange = (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+
+  const maxSize = 600 * 1024;
+  if (file.size > maxSize) {
+    toast("Image is too large. Please select an image under 600KB.");
+    $('commentMediaFileInput').value = '';
+    return;
+  }
+
+  const reader = new FileReader();
+  reader.onload = (uploadEvent) => {
+    attachedCommentImage = uploadEvent.target.result;
+    $('commentPreviewImg').src = attachedCommentImage;
+    $('commentMediaPreviewArea').classList.remove('hide');
+  };
+  reader.readAsDataURL(file);
+};
+
+$('removeCommentMediaBtn').onclick = () => {
+  attachedCommentImage = '';
+  $('commentMediaPreviewArea').classList.add('hide');
+  $('commentPreviewImg').src = '';
+  $('commentMediaFileInput').value = '';
+};
+
+$('sendCommentBtn').onclick = async () => {
+  const txtInput = $('commentInputText');
+  const text = txtInput.value.trim();
+  if ((!text && !attachedCommentImage) || !activePostId) return;
+
+  const commentMedia = attachedCommentImage;
+  const targetCommentId = replyingToCommentId;
+  
+  txtInput.value = '';
+  resetReplyState();
+
+  try {
+    if (targetCommentId) {
+      const commentRef = doc(db, 'posts', activePostId, 'comments', targetCommentId);
+      const replyObj = {
+        id: 'rep_' + Date.now() + Math.random().toString(36).substr(2, 5),
+        uid: ME.uid,
+        authorName: PROF?.username || ME.displayName || "User",
+        authorPhoto: PROF?.photoB64 || PROF?.avatarUrl || ME.photoURL || "",
+        text: text,
+        likes: [],
+        createdAt: Date.now()
+      };
+
+      await updateDoc(commentRef, {
+        replies: arrayUnion(replyObj)
+      });
+    } else {
+      await addDoc(collection(db, 'posts', activePostId, 'comments'), {
+        uid: ME.uid,
+        authorName: PROF?.username || ME.displayName || "User",
+        authorPhoto: PROF?.photoB64 || PROF?.avatarUrl || ME.photoURL || "",
+        text: text,
+        mediaUrl: commentMedia,
+        likes: [],
+        replies: [],
+        createdAt: serverTimestamp()
+      });
+    }
+  } catch (e) {
+    toast("Failed to post comment");
+  }
+};
+
+// Share Handlers
+$('closeShareBtn').onclick = () => {
+  $('shareModal').classList.remove('on');
+  $('scrim').classList.remove('on');
+  sharePostId = null;
+};
+
+$('shareCopyLink').onclick = () => {
+  if (!sharePostId) return;
+  const url = `${window.location.origin}/feed.html?post=${sharePostId}`;
+  navigator.clipboard.writeText(url).then(() => toast('Link copied!')).catch(() => toast('Failed to copy'));
+  $('shareModal').classList.remove('on');
+  $('scrim').classList.remove('on');
+};
+
+$('shareWhatsApp').onclick = () => {
+  if (!sharePostId) return;
+  const url = `${window.location.origin}/feed.html?post=${sharePostId}`;
+  window.open(`https://wa.me/?text=${encodeURIComponent(url)}`, '_blank');
+};
+
+$('shareTwitter').onclick = () => {
+  if (!sharePostId) return;
+  const url = `${window.location.origin}/feed.html?post=${sharePostId}`;
+  window.open(`https://twitter.com/intent/tweet?url=${encodeURIComponent(url)}`, '_blank');
+};
+
+$('shareMore').onclick = () => {
+  if (!sharePostId) return;
+  const url = `${window.location.origin}/feed.html?post=${sharePostId}`;
+  if (navigator.share) {
+    navigator.share({ title: 'Check out this post on Chepta', url }).catch(() => {});
+  } else {
+    toast('Sharing not supported on this device');
+  }
+};
+
+$('scrim').onclick = () => {
+  $('scrim').classList.remove('on');
+  $('commentsModal').classList.remove('on');
+  $('shareModal').classList.remove('on');
+  closeActionSheet();
+  document.querySelectorAll('.post-menu-dropdown').forEach(m => m.classList.remove('open'));
+};
+</script>
+
+</body>
+</html>

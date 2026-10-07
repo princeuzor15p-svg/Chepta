@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>chepta® — App Icon Generator</title>
+<style>
+  body {
+    margin: 0; background: #080d17; color: #eaf0fb; font-family: system-ui, sans-serif;
+    display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh;
+  }
+  .preview-box {
+    background: #0e1524; padding: 24px; border-radius: 28px; border: 1px solid rgba(255,255,255,0.08);
+    box-shadow: 0 24px 60px rgba(0,0,0,0.8); text-align: center;
+  }
+  canvas {
+    width: 200px; height: 200px; border-radius: 44px; box-shadow: 0 12px 30px rgba(0,0,0,0.5);
+    margin-bottom: 20px; display: block; margin-left: auto; margin-right: auto;
+  }
+  button {
+    background: linear-gradient(135deg, #12d6a4, #37e6ff); color: #04231c; border: 0;
+    padding: 14px 28px; border-radius: 14px; font-weight: 700; font-size: 15px; cursor: pointer;
+    box-shadow: 0 10px 25px -10px rgba(18,214,164,0.7); transition: transform .15s;
+  }
+  button:active { transform: scale(0.98); }
+  p { color: #8d9ab4; font-size: 13px; margin-top: 12px; }
+</style>
+</head>
+<body>
+
+<div class="preview-box">
+  <canvas id="iconCanvas" width="512" height="512"></canvas>
+  <button id="downloadBtn">Download 512x512 App Icon (.PNG)</button>
+  <p>Optimized for PWA, Android, and iOS app packaging</p>
+</div>
+
+<script>
+const canvas = document.getElementById("iconCanvas");
+const ctx = canvas.getContext("2d");
+
+function drawIcon() {
+  const size = 512;
+  
+  // 1. Modern Squircle / App Icon Background (Deep Dark Luxury Gradient)
+  const bgGrad = ctx.createLinearGradient(0, 0, size, size);
+  bgGrad.addColorStop(0, "#0e1524");
+  bgGrad.addColorStop(1, "#080d17");
+  
+  // Draw rounded rectangle background
+  ctx.fillStyle = bgGrad;
+  ctx.beginPath();
+  const radius = 112; // Standard app icon corner curvature ratio
+  ctx.moveTo(radius, 0);
+  ctx.lineTo(size - radius, 0);
+  ctx.quadraticCurveTo(size, 0, size, radius);
+  ctx.lineTo(size, size - radius);
+  ctx.quadraticCurveTo(size, size, size - radius, size);
+  ctx.lineTo(radius, size);
+  ctx.quadraticCurveTo(0, size, 0, size - radius);
+  ctx.lineTo(0, radius);
+  ctx.quadraticCurveTo(0, 0, radius, 0);
+  ctx.closePath();
+  ctx.fill();
+
+  // Subtle border highlight
+  ctx.strokeStyle = "rgba(255, 255, 255, 0.08)";
+  ctx.lineWidth = 8;
+  ctx.stroke();
+
+  // 2. Central Glowing Accent Circle / Badge Container
+  const badgeGrad = ctx.createLinearGradient(100, 100, 412, 412);
+  badgeGrad.addColorStop(0, "#12d6a4");
+  badgeGrad.addColorStop(1, "#37e6ff");
+
+  ctx.shadowColor = "rgba(18, 214, 164, 0.5)";
+  ctx.shadowBlur = 40;
+  ctx.shadowOffsetX = 0;
+  ctx.shadowOffsetY = 16;
+
+  ctx.fillStyle = badgeGrad;
+  ctx.beginPath();
+  ctx.arc(256, 230, 120, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Reset shadow for crisp inner elements
+  ctx.shadowBlur = 0;
+  ctx.shadowOffsetY = 0;
+
+  // 3. Inner Chat Symbol (Three minimalist dots inside the badge)
+  ctx.fillStyle = "#04231c";
+  const dotRadius = 14;
+  const yPos = 230;
+  
+  ctx.beginPath();
+  ctx.arc(206, yPos, dotRadius, 0, Math.PI * 2);
+  ctx.arc(256, yPos, dotRadius, 0, Math.PI * 2);
+  ctx.arc(306, yPos, dotRadius, 0, Math.PI * 2);
+  ctx.fill();
+
+  // 4. Clean "chepta" Brand Typography at the bottom of the icon
+  ctx.fillStyle = "#eaf0fb";
+  ctx.font = "bold 64px 'Sora', system-ui, sans-serif";
+  ctx.textAlign = "center";
+  ctx.fillText("chepta", 256, 420);
+}
+
+drawIcon();
+
+document.getElementById("downloadBtn").onclick = () => {
+  const link = document.createElement("a");
+  link.download = "chepta-app-icon-512.png";
+  link.href = canvas.toDataURL("image/png");
+  link.click();
+};
+</script>
+</body>
+</html>
